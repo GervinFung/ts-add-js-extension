@@ -1,0 +1,23 @@
+{
+    "terminal.integrated.shell.linux": "/usr/bin/fish",
+    "prettier.configPath": ".prettierrc.json",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 4,
+    "editor.formatOnSave": true,
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "typescript.inlayHints.parameterNames.enabled": "all",
+    "javascript.inlayHints.parameterNames.enabled": "all",
+    "errorLens.hintColor": "rgb(0,0,0,0)",
+    "errorLens.hintTextColor": "rgba(20,140,140,0.4)",
+    "errorLens.infoColor": "rgb(0,0,0,0)",
+    "errorLens.infoTextColor": "rgba(0,200,0,0.4)",
+    "errorLens.warningColor": "rgb(0,0,0,0)",
+    "errorLens.warningTextColor": "rgba(180,180,0,0.4)",
+    "editor.fontSize": 12
+}

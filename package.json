@@ -1,0 +1,24 @@
+{
+    "name": "ts-add-js-extension",
+    "version": "0.0.0",
+    "main": "build/index.js",
+    "license": "MIT",
+    "types": "build",
+    "bin": {
+        "ts-add-js-extension": "bin/ts-add-js-extension"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "scripts": {
+        "build": "rm -rf build && tsc"
+    },
+    "devDependencies": {
+        "@types/node": "^16.11.10",
+        "typescript": "^4.4.4"
+    },
+    "dependencies": {
+        "@typescript-eslint/typescript-estree": "^5.4.0",
+        "esm": "^3.2.25"
+    }
+}
