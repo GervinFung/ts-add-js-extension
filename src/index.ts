@@ -1,15 +1,33 @@
 import { AST, parse } from '@typescript-eslint/typescript-estree';
 import * as fs from 'fs';
+import { parseAsBoolean, parseAsString } from 'parse-dont-validate/build';
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
+
+/**
+ *
+ * @param variableValue value of a variable to be validated and parse
+ * @param expectedNumberType number type to be validated as, refer to NumberType
+ * @returns Options<number>. Option functions to be called that either would return a specified value or throw error in case variable is not of number type or specified NumberType
+ */
+
+/**
+ *
+ * @param variableValue value of a variable to be validated and parse
+ * @param expectedNumberType number type to be validated as, refer to NumberType
+ * @returns Options<number>. Option functions to be called that either would return a specified value or throw error in case variable is not of number type or specified NumberType
+ */
 
 type Node = {
     readonly file: string;
     readonly code: string;
     readonly ast: AST<{
         loc: true;
+        comments: boolean;
     }>;
 };
 
-type ReplaceNode = {
+type AddJSNode = {
     readonly oldCode: string;
     readonly newCode: string;
 };
@@ -19,15 +37,19 @@ type WriteCode = {
     readonly file: string;
 };
 
-// TODO - change to asynchronous
-const getAllTypeScriptFiles = (dir: string): ReadonlyArray<string> =>
+type Minify = {
+    readonly code: string;
+    readonly startLine: number;
+};
+
+const getAllJavaScriptFiles = (dir: string): ReadonlyArray<string> =>
     fs.readdirSync(dir).flatMap((file) => {
         const path = `${dir}/${file}`;
         if (fs.statSync(path).isDirectory()) {
-            return getAllTypeScriptFiles(path);
+            return getAllJavaScriptFiles(path);
         }
-        const extension = path.split('.')[1];
-        return extension ? (extension === 'ts' ? [path] : []) : [];
+        const extension = path.split('.').pop();
+        return extension ? (extension === 'js' ? [path] : []) : [];
     });
 
 const readCode = (files: string): Promise<string> =>
@@ -41,125 +63,350 @@ const readCode = (files: string): Promise<string> =>
             .on('error', reject);
     });
 
-const getAllTypeScriptCodes = (
-    files: ReadonlyArray<string>
+const getAllJavaScriptCodes = (
+    files: ReadonlyArray<string>,
+    keepComments: boolean
 ): ReadonlyArray<Promise<Node>> =>
     files.map(async (file) => {
         const code = await readCode(file);
         return {
             file,
             code,
-            ast: parse(code, { loc: true }),
+            ast: parse(code, { loc: true, comment: keepComments }),
         };
     });
 
-const processTypeScriptAST = (
+const getCodeSnippet = (
+    length: number,
+    startLine: number,
+    splitted: ReadonlyArray<string>,
+    option?: {
+        readonly addExtension?: AddJSNode;
+    }
+) => {
+    const code = Array.from({ length })
+        .map((_, index) => {
+            const i = index + startLine - 1;
+            const codeSnippet = splitted[i];
+            if (codeSnippet === undefined) {
+                throw new Error(`Code Snippet is undefined at index: ${i}`);
+            }
+            if (option) {
+                const { addExtension } = option;
+                return addExtension
+                    ? codeSnippet
+                          .replace(addExtension.oldCode, addExtension.newCode)
+                          .trim()
+                    : codeSnippet.trim();
+            }
+            return codeSnippet.trim();
+        })
+        .join('');
+    return {
+        code,
+        startLine,
+    };
+};
+
+const processComments = (type: 'Line' | 'Block', value: string) => {
+    switch (type) {
+        case 'Line':
+            return `//${value}`;
+        case 'Block':
+            return `/*${value}*/`;
+    }
+};
+
+const minifySourceCodeText = (
     { ast, code, file }: Node,
-    format: boolean
+    keepComments: boolean
 ): ReadonlyArray<WriteCode> => {
-    const { body } = ast;
-    const splitted = code.replace(/\r/g, '').split('\n');
-    const replaceNodes: ReadonlyArray<ReplaceNode> = body.flatMap(
-        (statement) => {
-            const { type } = statement;
-            switch (type) {
-                case 'ImportDeclaration': {
-                    const { source } = statement;
-                    const {
-                        value,
-                        loc: { end },
-                    } = source;
-                    const isRelativeImport = value.charAt(0) === '.';
-                    if (isRelativeImport) {
-                        const oldCode = splitted[end.line - 1];
-                        if (format && value.includes('.js')) {
-                            throw new Error(
-                                `Your typescript file: ${file} already contains .js extension for each relative import. Continue adding it will cause possible run time errors. Thus I disallowed that. Aborting...`
-                            );
-                        }
+    const { body, comments } = ast;
+    const codeWithoutCarriageReturn = code.replace(/\r/g, '');
+    const splitted = codeWithoutCarriageReturn.split('\n');
+    const sourceCode: ReadonlyArray<Minify> = body.map((statement) => {
+        const {
+            type,
+            loc: {
+                end: { line: endLine },
+                start: { line: startLine },
+            },
+        } = statement;
+        switch (type) {
+            case 'ImportDeclaration': {
+                const { source } = statement;
+                const {
+                    value,
+                    loc: { end },
+                } = source;
+                if (value.charAt(0) === '.') {
+                    const oldCode = splitted[end.line - 1];
+                    if (!oldCode) {
+                        throw new Error(`Old Code: ${oldCode} is undefined`);
+                    }
+                    return getCodeSnippet(
+                        endLine - startLine + 1,
+                        startLine,
+                        splitted,
+                        value.includes('.js')
+                            ? undefined
+                            : {
+                                  addExtension: {
+                                      oldCode,
+                                      newCode: oldCode.replace(
+                                          value,
+                                          `${value}.js`
+                                      ),
+                                  },
+                              }
+                    );
+                }
+            }
+        }
+        return getCodeSnippet(endLine - startLine + 1, startLine, splitted);
+    });
+    if (!keepComments) {
+        return [
+            {
+                code: sourceCode.map((p) => p.code).join(''),
+                file,
+            },
+        ];
+    }
+    const sourceCodeWithComments = (comments ? comments : [])
+        .reduce((prev, comment) => {
+            const {
+                type,
+                value,
+                loc: {
+                    start: { line },
+                },
+            } = comment;
+
+            let found = false;
+
+            return prev.reduce((prev, p, index, arr) => {
+                if (p.startLine > line && !found) {
+                    found = true;
+                    const last = prev[prev.length - 1];
+                    if (last === undefined) {
+                        throw new Error(
+                            'last item of accummulated source code cannot be undefined'
+                        );
+                    }
+                    return prev.concat([
+                        {
+                            code:
+                                last.code.charAt(last.code.length - 1) === '\n'
+                                    ? `${processComments(type, value)}\n`
+                                    : `\n${processComments(type, value)}\n`,
+                            startLine: line,
+                        },
+                        p,
+                    ]);
+                }
+                if (index === arr.length - 1 && !found) {
+                    return prev.concat([
+                        {
+                            code: `\n${processComments(type, value)}\n`,
+                            startLine: line,
+                        },
+                        p,
+                    ]);
+                }
+                return prev.concat(p);
+            }, [] as ReadonlyArray<Minify>);
+        }, sourceCode)
+        .map((p) => p.code)
+        .join('');
+    return [
+        {
+            code: sourceCodeWithComments,
+            file,
+        },
+    ];
+};
+
+const findLackOfJSExtension = (
+    { ast, code, file }: Node,
+    keepComments: boolean
+): ReadonlyArray<WriteCode> => {
+    const { body, comments } = ast;
+    const codeWithoutCarriageReturn = code.replace(/\r/g, '');
+    const splitted = codeWithoutCarriageReturn.split('\n');
+    const replaceNodes: ReadonlyArray<AddJSNode> = body.flatMap((statement) => {
+        const { type } = statement;
+        switch (type) {
+            case 'ImportDeclaration': {
+                const { source } = statement;
+                const {
+                    value,
+                    loc: { end },
+                } = source;
+                if (value.charAt(0) === '.') {
+                    const oldCode = splitted[end.line - 1];
+                    if (!oldCode) {
+                        throw new Error(`Old Code: ${oldCode} is undefined`);
+                    }
+                    if (!value.includes('.js')) {
                         return [
                             {
                                 oldCode,
-                                newCode: format
-                                    ? oldCode.replace(value, `${value}.js`)
-                                    : oldCode.replace(
-                                          value,
-                                          value.replace('.js', '')
-                                      ),
-                            } as ReplaceNode,
+                                newCode: oldCode.replace(value, `${value}.js`),
+                            },
                         ];
                     }
                 }
             }
-            return [];
         }
-    );
-    let copy = code;
-    replaceNodes.forEach((replaceNode) => {
-        const { oldCode, newCode } = replaceNode;
-        copy = copy.replace(oldCode, newCode);
+        return [];
     });
-    return replaceNodes.length ? [{ code: copy, file }] : [];
+    const newCode = replaceNodes.length
+        ? replaceNodes.reduce(
+              (prev, { oldCode, newCode }) => prev.replace(oldCode, newCode),
+              codeWithoutCarriageReturn
+          )
+        : codeWithoutCarriageReturn;
+    if (keepComments) {
+        return replaceNodes.length ? [{ code: newCode, file }] : [];
+    }
+    const replaceComments = (comments ? comments : []).map(({ type, value }) =>
+        processComments(type, value)
+    );
+    const newCodeWithoutComments = replaceComments.reduce(
+        (prev, curr) => prev.replace(curr, ''),
+        newCode
+    );
+    return [{ code: newCodeWithoutComments, file }];
 };
 
-const main = async (dir: string, format: boolean) => {
-    const files = getAllTypeScriptFiles(dir);
-    const ast = await getAllTypeScriptCodes(files).reduce(
-        async (prev, curr) => (await prev).concat(await curr),
-        Promise.resolve([] as ReadonlyArray<Node>)
-    );
+const main = async (
+    dir: string,
+    {
+        minify,
+        keepComments,
+    }: {
+        readonly minify: boolean;
+        readonly keepComments: boolean;
+    }
+) => {
+    const files = getAllJavaScriptFiles(dir);
+    if (files.length === 0) {
+        console.log(
+            `No files with .js extension was found in the specified folder of ${dir}. If this behavior is unexpected, Please file an issue, your feedback is greatly appreciated. Adios...`
+        );
+        process.exit(0);
+    }
+    if (dir) {
+        console.log(
+            'Adding .js extension to each relative import. Please be patient...'
+        );
+    }
+    if (minify) {
+        console.log('Minifying all JavaScript code. Please be patient...');
+    }
+    if (!keepComments) {
+        console.log('Removing all JavaScript comments. Please be patient...');
+    }
 
-    ast.flatMap((t) => processTypeScriptAST(t, format)).forEach(
-        ({ code, file }) => {
-            fs.writeFile(file, code, (err) => {
-                if (err) {
-                    console.error(err);
+    if (minify) {
+        const ast = await getAllJavaScriptCodes(files, keepComments).reduce(
+            async (prev, curr) => (await prev).concat(await curr),
+            Promise.resolve([] as ReadonlyArray<Node>)
+        );
+        ast.flatMap((t) => minifySourceCodeText(t, keepComments)).forEach(
+            ({ code, file }) => {
+                fs.writeFile(file, code, (err) => {
+                    if (err) {
+                        console.error(err);
+                    }
+                });
+            }
+        );
+    } else {
+        const ast = await getAllJavaScriptCodes(files, !keepComments).reduce(
+            async (prev, curr) => (await prev).concat(await curr),
+            Promise.resolve([] as ReadonlyArray<Node>)
+        );
+        ast.flatMap((t) => findLackOfJSExtension(t, keepComments)).forEach(
+            ({ code, file }) => {
+                fs.writeFile(file, code, (err) => {
+                    if (err) {
+                        console.error(err);
+                    }
+                });
+            }
+        );
+    }
+    if (dir) {
+        console.log('Completed adding .js extension to each relative import');
+    }
+    if (minify) {
+        console.log('Completed minifying all JavaScript code');
+    }
+    if (!keepComments) {
+        console.log('Completed removal of all JavaScript comments');
+    }
+};
+
+export default (args: Array<string>) => {
+    yargs(hideBin(args))
+        .usage(
+            'Use to add .js extension for the relative imports in the javascript code if there is lack of .js extension in the import.'
+        )
+        .command({
+            command: 'add',
+            describe:
+                'Use to add .js extension for the relative imports in the javascript code if there is lack of .js extension in the import.',
+            builder: {
+                dir: {
+                    describe: 'The folder that contains javascript codes',
+                    demandOption: true,
+                    type: 'string',
+                },
+                minify: {
+                    describe:
+                        'Determine whether to minify the javascript codes (default to false)',
+                    type: 'boolean',
+                    default: false,
+                },
+                keepComments: {
+                    describe:
+                        'Determine whether to remove the javascript comments (default to true)',
+                    type: 'boolean',
+                    default: true,
+                },
+            },
+            handler(argv) {
+                const dir = parseAsString(argv['dir']).orElseThrowError('dir');
+                const minify = parseAsBoolean(argv['minify']).orElseThrowError(
+                    'minify'
+                );
+                const keepComments = parseAsBoolean(
+                    argv['keepComments']
+                ).orElseThrowError('keepComments');
+                try {
+                    main(dir, { minify, keepComments });
+                    console.log(
+                        "It's ready...\nThank you for using me! Have a wonderful day!"
+                    );
+                } catch {
+                    process.exit(1);
                 }
-            });
-        }
-    );
-};
-
-const processOption = (option: string) => {
-    if (option === 'add') {
-        return true;
-    } else if (option === 'remove') {
-        return false;
-    }
-    throw new Error(
-        `Second arguments must be either "--add" or "--remove". You used "--${option}" instead`
-    );
-};
-
-export default (args: ReadonlyArray<string>) => {
-    const params: ReadonlyArray<string> = args
-        .map((arg) => arg.replace(/--/g, ''))
-        .slice(2);
-    const length = params.length;
-    if (length === 2) {
-        const format = processOption(params[1]);
-        console.log(
-            `${
-                format ? 'Adding' : 'Removing'
-            } .js extension to each relative import. Please be patient...`
-        );
-        try {
-            main(params[0], format);
-        } catch {
-            process.exit(1);
-        }
-        console.log(
-            `Completed ${
-                format ? 'adding' : 'removing'
-            } .js extension to each relative import. It's ready for deployment...\nThank you for using me.`
-        );
-        return;
-    } else if (length === 1) {
-        throw new Error(
-            'Did you forgot to add a "format" option to format each relative import in typescript?\n1. true to add .js extension\n2. false to remove .js extension'
-        );
-    }
-    throw new Error(
-        'Did you forgot to provide 2 arguments?\n1. dir: directory to read from\n2. format: to determine whether to add .js extension for each relative import in typescript'
-    );
+            },
+        })
+        .example(
+            "Assume javascript files are placed in folder called 'build'\nThe command will be as below\n$0 add --dir=build --minify=true",
+            `.
+            1. dir stands for the directory of the javascript code. (string)
+            2. minify stands for whether to minify the javascript code. (boolean)
+            3. keepComments stands for whether to remove all the comments in javascript code. (boolean)
+            \n
+            ***
+            By default minify is false and keepComments is set to true
+            ***
+            `
+        )
+        .help()
+        .strict().argv;
 };
