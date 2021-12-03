@@ -5,6 +5,7 @@
 .gitattributes
 
 /.prettierrc.json
+/.prettierignore
 /tsconfig.json
 /.eslintrc
 
