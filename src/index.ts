@@ -1,22 +1,8 @@
 import { AST, parse } from '@typescript-eslint/typescript-estree';
 import * as fs from 'fs';
-import { parseAsBoolean, parseAsString } from 'parse-dont-validate/build';
+import { parseAsBoolean, parseAsString } from 'parse-dont-validate';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-
-/**
- *
- * @param variableValue value of a variable to be validated and parse
- * @param expectedNumberType number type to be validated as, refer to NumberType
- * @returns Options<number>. Option functions to be called that either would return a specified value or throw error in case variable is not of number type or specified NumberType
- */
-
-/**
- *
- * @param variableValue value of a variable to be validated and parse
- * @param expectedNumberType number type to be validated as, refer to NumberType
- * @returns Options<number>. Option functions to be called that either would return a specified value or throw error in case variable is not of number type or specified NumberType
- */
 
 type Node = {
     readonly file: string;
@@ -308,7 +294,6 @@ const main = async (
     if (!keepComments) {
         console.log('Removing all JavaScript comments. Please be patient...');
     }
-
     if (minify) {
         const ast = await getAllJavaScriptCodes(files, keepComments).reduce(
             async (prev, curr) => (await prev).concat(await curr),
@@ -347,6 +332,7 @@ const main = async (
     if (!keepComments) {
         console.log('Completed removal of all JavaScript comments');
     }
+    console.log("It's done...\nThank you for using me! Have a wonderful day!");
 };
 
 export default (args: Array<string>) => {
@@ -387,9 +373,6 @@ export default (args: Array<string>) => {
                 ).orElseThrowError('keepComments');
                 try {
                     main(dir, { minify, keepComments });
-                    console.log(
-                        "It's ready...\nThank you for using me! Have a wonderful day!"
-                    );
                 } catch {
                     process.exit(1);
                 }
