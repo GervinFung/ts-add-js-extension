@@ -1,3 +1,7 @@
+## 1.0.0 (13 Jan 2021)
+
+* Removed minification, perform only single function -> Add .js extension to each relative import
+
 ## 0.0.5 (4 Dec 2021)
 
 * change file in bin folder to JavaScript file and changed to import, not require

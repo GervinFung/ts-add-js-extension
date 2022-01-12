@@ -1,6 +1,12 @@
 # **ts-add-js-extension**
 
-Meant for typescript projects only. It add .js extension to each relative import when you compile typescript to ESNext Module. In addition there's an option to minify all the compiled javascript code by removing comments and inlining all the codes. I mostly use this for myself, so you might want to use a better bundler and minifier if performance and code obscureness is your concern, but if you don't mind some simple minification, you can try this out as well :)
+Meant for typescript projects only. It add .js extension to each relative import when you compile typescript to ESNext Module.
+
+ **Note**:
+ I removed custom minification as there are better minification than what I wrote. I thought it would be good to add custom minification, but I was wrong, if any of you faced difficulties while using this package, I apologize.
+ 
+ As such, this package will do what it does - `Add .js extension to each relative import`. You may continue to use this package but you will need another minifier, such as Terser
+
 
 ### In typescript file
 
@@ -14,7 +20,10 @@ console.log(add(2, 1) === math.add(2, 1));
 ### will yield in compiled js files
 
 ```js
-import { add } from './math.js';import math from './math.js';console.log(add(2, 1) === math.add(2, 1));
+import { add } from './math.js';
+import math from './math.js';
+
+console.log(add(2, 1) === math.add(2, 1));
 ```
 
 ### instead of
@@ -49,7 +58,5 @@ OR
 Your compiled typescript folder can be named whatever you like, in this case the convention is dist
 
 ```json
-"build:ts-add-js-extension": "ts-add-js-extension --dir=dist --minify=true --keepComments=false"
+"build:ts-add-js-extension": "ts-add-js-extension --dir=dist"
 ```
-Of course you can choose not to minify and remove comments, you can set the values yourself
-However, by default minify and keepComments is set to false and true respectively

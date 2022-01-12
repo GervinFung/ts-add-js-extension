@@ -1,19 +1,24 @@
 {
     "name": "ts-add-js-extension",
-    "description": "Add .js extension to each relative import in compiled javascript file, minify and remove comments as additional option",
-    "version": "0.0.5",
-    "main": "./build/index.js",
+    "description": "Add .js extension to each relative import in compiled javascript file",
+    "version": "1.0.0",
+    "main": "build/index.js",
     "license": "MIT",
     "type": "module",
-    "types": "build",
+    "types": "build/index.d.ts",
     "bin": {
         "ts-add-js-extension": "bin/ts-add-js-extension.js"
     },
     "publishConfig": {
         "access": "public"
     },
+    "files": [
+        "build"
+    ],
     "scripts": {
-        "build": "rm -rf build && tsc"
+        "build": "rm -rf build && tsc",
+        "pretest": "yarn build && make create && make copy",
+        "test": "node test/index.js"
     },
     "bugs": "https://github.com/P-YNPM/ts-add-js-extension/issues",
     "repository": {
@@ -27,12 +32,11 @@
     },
     "dependencies": {
         "@typescript-eslint/typescript-estree": "^5.4.0",
-        "parse-dont-validate": "^0.0.2",
+        "parse-dont-validate": "^1.0.1",
         "yargs": "^17.3.0"
     },
     "keywords": [
         "js extension",
-        "esnext",
-        "minification"
+        "esnext"
     ]
 }
