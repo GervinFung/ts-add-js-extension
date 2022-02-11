@@ -1,3 +1,7 @@
+## 1.0.1 (11 Feb 2021)
+
+* Made write file asynchronous to speed up writing
+
 ## 1.0.0 (13 Jan 2021)
 
 * Removed minification, perform only single function -> Add .js extension to each relative import

@@ -67,8 +67,12 @@ const addExtension = ({
     const replaceNodes: ReadonlyArray<AddJSNode> = body.flatMap((statement) => {
         const { type } = statement;
         switch (type) {
+            case 'ExportNamedDeclaration':
             case 'ImportDeclaration': {
                 const { source } = statement;
+                if (!source) {
+                    return [];
+                }
                 const {
                     value,
                     loc: { end },
@@ -115,24 +119,25 @@ const main = async (dir: string) => {
     }
     if (dir) {
         console.log(
-            'Adding .js extension to each relative import. Please be patient...'
+            'Adding .js extension to each relative import/export. Please be patient...'
         );
     }
-    (
-        await getAllJavaScriptCodes(files).reduce(
-            async (prev, curr) => (await prev).concat(await curr),
-            Promise.resolve([] as ReadonlyArray<Node>)
+    await Promise.all(
+        (
+            await getAllJavaScriptCodes(files).reduce(
+                async (prev, curr) => (await prev).concat(await curr),
+                Promise.resolve([] as ReadonlyArray<Node>)
+            )
         )
-    )
-        .flatMap((t) => addExtension(t))
-        .forEach(({ code, file }) => {
-            fs.writeFile(file, code, (err) => {
-                if (err) {
-                    console.error(err);
-                }
-            });
-        });
-
+            .flatMap((t) => addExtension(t))
+            .map(({ code, file }) =>
+                fs.writeFile(file, code, (err) => {
+                    if (err) {
+                        console.error(err);
+                    }
+                })
+            )
+    );
     if (dir) {
         console.log('Completed adding .js extension to each relative import');
     }

@@ -1,38 +1,78 @@
 # **ts-add-js-extension**
 
-Meant for typescript projects only. It add .js extension to each relative import when you compile typescript to ESNext Module.
+Meant for typescript projects only. It add .js extension to each relative import and export when you compile typescript to ESNext Module.
 
  **Note**:
  I removed custom minification as there are better minification than what I wrote. I thought it would be good to add custom minification, but I was wrong, if any of you faced difficulties while using this package, I apologize.
  
- As such, this package will do what it does - `Add .js extension to each relative import`. You may continue to use this package but you will need another minifier, such as Terser
+ This package will only work if the import contain file name in the import or export statement.
 
+ For example, assume that you have a file named `index.ts` inside a math folder, it's possible to not include `/index` in your import statement
 
-### In typescript file
+ As such, this package work for the following code because the file it imported is `index.ts`
+
+```ts
+import { add } from './math/index';
+console.log(add(2, 1));
+```
+ However, this package won't work for the following example there's no `index.ts` file specified 
 
 ```ts
 import { add } from './math';
-import math from './math';
+console.log(add(2, 1));
+```
+ Perhaps, such functionality will be provided in the future
+
+
+## **_How it works_**
+
+### For import statement
+
+#### In typescript file
+
+```ts
+import { add } from './math/index';
+import math from './math/index';
 
 console.log(add(2, 1) === math.add(2, 1));
 ```
 
-### will yield in compiled js files
+#### will yield in compiled js files
 
 ```js
-import { add } from './math.js';
-import math from './math.js';
+import { add } from './math/index.js';
+import math from './math/index.js';
 
 console.log(add(2, 1) === math.add(2, 1));
 ```
 
-### instead of
+#### instead of
 
 ```ts
-import { add } from './math';
-import math from './math';
+import { add } from './math/index';
+import math from './math/index';
 
 console.log(add(2, 1) === math.add(2, 1));
+```
+
+### For export statement
+
+#### In typescript file
+
+```ts
+export { add, sub, mul, div } from './math/index';
+```
+
+#### will yield in compiled js files
+
+```js
+export { add, sub, mul, div } from './math/index.js';
+```
+
+#### instead of
+
+```ts
+export { add, sub, mul, div } from './math/index';
 ```
 
 ## **_Question_**
