@@ -67,6 +67,7 @@ const addExtension = ({
     const replaceNodes: ReadonlyArray<AddJSNode> = body.flatMap((statement) => {
         const { type } = statement;
         switch (type) {
+            case 'ExportAllDeclaration':
             case 'ExportNamedDeclaration':
             case 'ImportDeclaration': {
                 const { source } = statement;
