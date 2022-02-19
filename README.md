@@ -61,18 +61,21 @@ console.log(add(2, 1) === math.add(2, 1));
 
 ```ts
 export { add, sub, mul, div } from './math/index';
+export * from './math/index';
 ```
 
 #### will yield in compiled js files
 
 ```js
 export { add, sub, mul, div } from './math/index.js';
+export * from './math/index.js';
 ```
 
 #### instead of
 
 ```ts
 export { add, sub, mul, div } from './math/index';
+export * from './math/index';
 ```
 
 ## **_Question_**
@@ -87,16 +90,24 @@ Feel free to raise an issue if you have a question, an enhancement, or a bug rep
 
 ## **_How to use_**
 
-`yarn add -D ts-add-js-extension`
+```sh
+yarn add -D ts-add-js-extension
+```
 
 OR
 
-`npm i -D ts-add-js-extension`
+```sh
+npm i -D ts-add-js-extension
+```
 
 ### In package.json add:
 
 Your compiled typescript folder can be named whatever you like, in this case the convention is dist
 
 ```json
-"build:ts-add-js-extension": "ts-add-js-extension --dir=dist"
+{
+  "scripts": {
+    "build:ts-add-js-extension": "ts-add-js-extension add --dir=dist"
+  }
+}
 ```
