@@ -1,3 +1,7 @@
+## 1.0.2 (20 Feb 2021)
+
+* Merge PR `https://github.com/P-YNPM/ts-add-js-extension/pull/2` to add `ExportAllDeclaration` to handle additional export JavaScript
+
 ## 1.0.1 (11 Feb 2021)
 
 * Made write file asynchronous to speed up writing
@@ -8,7 +12,7 @@
 
 ## 0.0.5 (4 Dec 2021)
 
-* change file in bin folder to JavaScript file and changed to import, not require
+* Change file in bin folder to JavaScript file and changed to import, not require
 
 ## 0.0.4 (4 Dec 2021)
 

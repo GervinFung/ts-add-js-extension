@@ -24,7 +24,7 @@ copy:
 	&& cp ${sampleExport}/sample2.js output/${export}/${exportOutput2}
 
 publish:
-	git push
-	yarn build
-	npm publish
-
+	@read -p "What is your commit message: " COMMIT\
+	&& git add . && git commit -m "$${COMMIT}" && git push\
+	&& yarn build\
+	&& npm publish
