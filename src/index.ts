@@ -1,6 +1,6 @@
 import { AST, parse } from '@typescript-eslint/typescript-estree';
 import * as fs from 'fs';
-import { parseAsString } from 'parse-dont-validate';
+import { parseAsReadonlyArray, parseAsString } from 'parse-dont-validate';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 
@@ -188,12 +188,20 @@ export default (args: Array<string>) =>
                     demandOption: true,
                     type: 'string',
                 },
+                include: {
+                    describe:
+                        'The folder of files that is imported or included in `dir` folder, exclusing the `dir` specified',
+                    demandOption: false,
+                    type: 'array',
+                },
             },
             handler(argv) {
                 try {
                     main(
                         parseAsString(argv['dir']).orElseThrowDefault('dir'),
-                        []
+                        parseAsReadonlyArray(argv['include'], (dir) =>
+                            parseAsString(dir).orElseThrowDefault(`dir: ${dir}`)
+                        ).orElseGetReadonlyEmptyArray()
                     );
                 } catch {
                     process.exit(1);
@@ -204,6 +212,7 @@ export default (args: Array<string>) =>
             "Assume javascript files are placed in folder called 'build'\nThe command will be as below\n$0 add --dir=build",
             `.
             1. dir stands for the directory of that needs to add .js extension. (string)
+            2. include stands for the directory of files that is imported or included in 'dir' folder, exclusing the 'dir' specified. (array)
             `
         )
         .help()
