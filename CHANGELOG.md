@@ -1,35 +1,40 @@
+## 1.1.0 (6 May 2022)
+
+-   (Fix) Read all javascript files to make sure relative imported file is JavaScript file before adding `.js` extension
+-   (Feat) Allow import from different root folder, for example, it is possible to add `.js` extension for imported JavaScript files from `common` into `src` folder
+
 ## 1.0.2 (20 Feb 2022)
 
--   Merge PR `https://github.com/P-YNPM/ts-add-js-extension/pull/2` to add `ExportAllDeclaration` to handle additional export JavaScript
+-   (Fix) Merge PR `https://github.com/P-YNPM/ts-add-js-extension/pull/2` to add `ExportAllDeclaration` to handle additional export JavaScript
 
 ## 1.0.1 (11 Feb 2022)
 
--   Made write file asynchronous to speed up writing
+-   (Feat) Made write file asynchronous to speed up writing
 
 ## 1.0.0 (13 Jan 2022)
 
--   Removed minification, perform only single function -> Add .js extension to each relative import
+-   (Fix!) Removed minification, perform only single function -> Add .js extension to each relative import
 
 ## 0.0.5 (4 Dec 2021)
 
--   Change file in bin folder to JavaScript file and changed to import, not require
+-   (Chore) Change file in bin folder to JavaScript file and changed to import, not require
 
 ## 0.0.4 (4 Dec 2021)
 
--   Updated parse-dont-validate package version in package.json
+-   (Chore) Updated parse-dont-validate package version in package.json
 
 ## 0.0.3 (4 Dec 2021)
 
--   Added main entry point
+-   (Feat) Added main entry point
 
 ## 0.0.2 (4 Dec 2021)
 
--   Added minification and remove comment option based on AST
+-   (Feat) Added minification and remove comment option based on AST
 
 ## 0.0.1 (29 Nov 2021)
 
--   Added Git URL
+-   (Chore) Added Git URL
 
 ## 0.0.0 (29 Nov 2021)
 
--   Initial public release
+-   (Feat) Initial public release
