@@ -1,10 +1,2 @@
-import s from "../s";
-import s from '../s';
-
-const Log = () => {
-    return {
-        log: () => console.log(s),
-    };
-};
-
-export default Log;
+import { sample1 } from './sample1';
+import './c.css'

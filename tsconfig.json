@@ -1,34 +1,28 @@
 {
     "compilerOptions": {
-        /* Basic Options */
-        "incremental": true /* Enable incremental compilation */,
-        "target": "ESNEXT" /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019', 'ES2020', or 'ESNEXT'. */,
-        "module": "ESNEXT" /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', 'es2020', or 'ESNext'. */,
-        // "lib": [],                             /* Specify library files to be included in the compilation. */
-        "allowJs": false /* Allow javascript files to be compiled. */,
-        "checkJs": false /* Report errors in .js files. */,
-        "declaration": true /* Emit an '.d.ts' definitions files. */,
-        "declarationMap": true /* Generate sourcemap for each corresponding '.d.ts' definitions files. */,
-        "sourceMap": true /* Generate corresponding '.map' files. */,
-        "outDir": "build" /* Redirect output structure to the directory */,
-
-        /* Strict Type-Checking Options */
-        "strict": true /* Enable all strict type-checking options. */,
-
-        /* Additional Checks */
-        "noUnusedLocals": true /* Report errors on unused locals. */,
-        "noUnusedParameters": true /* Report errors on unused parameters. */,
-        "noImplicitReturns": true /* Report error when not all code paths in function return a value. */,
-        "noFallthroughCasesInSwitch": true /* Report errors for fallthrough cases in switch statement. */,
+        "incremental": true,
+        "target": "ESNEXT",
+        "module": "ESNEXT",
+        "allowJs": false,
+        "checkJs": false,
+        "strict": true,
+        "skipLibCheck": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "resolveJsonModule": true,
         "noUncheckedIndexedAccess": true,
-
-        /* Module Resolution Options */
-        "moduleResolution": "node" /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */,
-        "esModuleInterop": true /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */,
-
-        /* Advanced Options */
-        "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */
+        "pretty": true,
+        "outDir": "build",
+        "preserveWatchOutput": true,
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true
     },
-    "include": ["src/"],
+    "include": ["src"],
     "exclude": ["node_modules"]
 }
