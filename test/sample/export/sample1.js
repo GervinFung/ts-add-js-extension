@@ -1,3 +1,1 @@
-export {s} from "../s";
-export {s} from '../s';
-export {abc}
+export { sample1 } from './sample1';

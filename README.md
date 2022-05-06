@@ -1,28 +1,27 @@
 # **ts-add-js-extension**
 
-Meant for typescript projects only. It add .js extension to each relative import and export when you compile typescript to ESNext Module.
+Initially meant for typescript projects only, however if you are lazy to add `.js` extension to your javascript relative import, you can also use this as well.
 
- **Note**:
- I removed custom minification as there are better minification than what I wrote. I thought it would be good to add custom minification, but I was wrong, if any of you faced difficulties while using this package, I apologize.
- 
- This package will only work if the import contain file name in the import or export statement.
+What it does is it add `.js` extension to each relative import and export for ES Module JavaScript, so you don't have to do it yourself
 
- For example, assume that you have a file named `index.ts` inside a math folder, it's possible to not include `/index` in your import statement
+**Note**:
+This package will only work if the import contain file name in the import or export statement.
 
- As such, this package work for the following code because the file it imported is `index.ts`
+For example, assume that you have a file named `index.ts` inside a math folder, it's possible to not include `/index` in your import statement
+
+However, this package only work for the following code because the file it imported is `index.ts`, it needs the file name specified
 
 ```ts
 import { add } from './math/index';
 console.log(add(2, 1));
 ```
- However, this package won't work for the following example there's no `index.ts` file specified 
+
+That means, this package won't work for the following example there's no `index.ts` file specified
 
 ```ts
 import { add } from './math';
 console.log(add(2, 1));
 ```
- Perhaps, such functionality will be provided in the future
-
 
 ## **_How it works_**
 
@@ -82,7 +81,7 @@ export * from './math/index';
 
 `Why do I build this?`
 
-Initially I wrote it only for myself because I don't like to have `.js` in my typescript import statement if I were to compile my typescript project to ESNext Module, it just feels weird although it works. Another option is to compile it to CommonJS Module, but I don't want to. Besides, it's good to learn something new as this is done with the help of AST :). Thus I can use this package for my typescript projects
+Initially I wrote it only for myself because I don't like to have `.js` in my typescript import statement if I were to compile my typescript project to ESNext Module, it just feels weird although it works. Another option is to compile it to CommonJS Module, but I don't want to. Besides, it's good to learn something new as this is done with the help of AST :). Thus I can use this package for my TypeScript or JavaScript projects
 
 `How do I raise an issue?`
 
@@ -106,8 +105,8 @@ Your compiled typescript folder can be named whatever you like, in this case the
 
 ```json
 {
-  "scripts": {
-    "build:ts-add-js-extension": "ts-add-js-extension add --dir=dist"
-  }
+    "scripts": {
+        "build:ts-add-js-extension": "ts-add-js-extension add --dir=dist"
+    }
 }
 ```

@@ -24,7 +24,9 @@ type WriteCode = Readonly<{
     file: string;
 }>;
 
-const getAllJavaScriptFiles = (dir: string): ReadonlyArray<string> =>
+type Files = ReadonlyArray<string>;
+
+const getAllJavaScriptFiles = (dir: string): Files =>
     fs.readdirSync(dir).flatMap((file) => {
         const path = `${dir}/${file}`;
         if (fs.statSync(path).isDirectory()) {
@@ -45,9 +47,7 @@ const readCode = (files: string): Promise<string> =>
             .on('error', reject);
     });
 
-const getAllJavaScriptCodes = (
-    files: ReadonlyArray<string>
-): ReadonlyArray<Promise<Node>> =>
+const getAllJavaScriptCodes = (files: Files): ReadonlyArray<Promise<Node>> =>
     files.map(async (file) => {
         const code = await readCode(file);
         return {
@@ -57,11 +57,10 @@ const getAllJavaScriptCodes = (
         };
     });
 
-const addExtension = ({
-    ast: { body },
-    code,
-    file,
-}: Node): ReadonlyArray<WriteCode> => {
+const addExtension = (
+    { ast: { body }, code, file }: Node,
+    files: Files
+): ReadonlyArray<WriteCode> => {
     const codeWithoutCarriageReturn = code.replace(/\r/gm, '');
     const splitted = codeWithoutCarriageReturn.split('\n');
     const replaceNodes: ReadonlyArray<AddJSNode> = body.flatMap((statement) => {
@@ -78,19 +77,44 @@ const addExtension = ({
                     value,
                     loc: { end },
                 } = source;
-                if (value.charAt(0) === '.') {
-                    const oldCode = splitted[end.line - 1];
-                    if (!oldCode) {
-                        throw new Error(`Old Code: ${oldCode} is undefined`);
-                    }
-                    if (!value.includes('.js')) {
-                        return [
-                            {
-                                oldCode,
-                                newCode: oldCode.replace(value, `${value}.js`),
-                            },
-                        ];
-                    }
+                const fileName = value.split('/').pop();
+                if (!fileName) {
+                    throw new Error(
+                        `Impossible for file name to be non-existent for ${value}`
+                    );
+                }
+                if (value.charAt(0) !== '.') {
+                    return [];
+                }
+                const removeRelativeImportCount = value.startsWith('./')
+                    ? 1
+                    : value.split('../').length;
+                const pathToReaplceRelativeImport = file
+                    .split('/')
+                    .slice(0, removeRelativeImportCount * -1)
+                    .join('/');
+                const filePathForFileImported = `${pathToReaplceRelativeImport}/${value
+                    .split('/')
+                    .filter((val) => val !== '..' && val !== '.')
+                    .join('/')}.js`;
+                // if file name not included in list of js file read
+                const fileFound = files.find(
+                    (file) => file === filePathForFileImported
+                );
+                if (!fileFound) {
+                    return [];
+                }
+                const oldCode = splitted[end.line - 1];
+                if (!oldCode) {
+                    throw new Error(`Old Code: ${oldCode} is undefined`);
+                }
+                if (!value.includes('.js')) {
+                    return [
+                        {
+                            oldCode,
+                            newCode: oldCode.replace(value, `${value}.js`),
+                        },
+                    ];
                 }
             }
         }
@@ -98,19 +122,19 @@ const addExtension = ({
     });
     return [
         {
-            code: replaceNodes.length
-                ? replaceNodes.reduce(
+            file,
+            code: !replaceNodes.length
+                ? codeWithoutCarriageReturn
+                : replaceNodes.reduce(
                       (prev, { oldCode, newCode }) =>
                           prev.replace(oldCode, newCode),
                       codeWithoutCarriageReturn
-                  )
-                : codeWithoutCarriageReturn,
-            file,
+                  ),
         },
     ];
 };
 
-const main = async (dir: string) => {
+const main = async (dir: string, include: ReadonlyArray<string>) => {
     const files = getAllJavaScriptFiles(dir);
     if (files.length === 0) {
         console.log(
@@ -123,6 +147,10 @@ const main = async (dir: string) => {
             'Adding .js extension to each relative import/export. Please be patient...'
         );
     }
+    // user may import files from `common` into `src`
+    const allIncludedFiles: Files = files.concat(
+        include.flatMap(getAllJavaScriptFiles)
+    );
     await Promise.all(
         (
             await getAllJavaScriptCodes(files).reduce(
@@ -130,7 +158,7 @@ const main = async (dir: string) => {
                 Promise.resolve([] as ReadonlyArray<Node>)
             )
         )
-            .flatMap((t) => addExtension(t))
+            .flatMap((t) => addExtension(t, allIncludedFiles))
             .map(({ code, file }) =>
                 fs.writeFile(file, code, (err) => {
                     if (err) {
@@ -156,14 +184,17 @@ export default (args: Array<string>) =>
                 'Use to add .js extension for the relative imports in the javascript code if there is lack of .js extension in the import.',
             builder: {
                 dir: {
-                    describe: 'The folder that contains javascript codes',
+                    describe: 'The folder that need to add .js extension',
                     demandOption: true,
                     type: 'string',
                 },
             },
             handler(argv) {
                 try {
-                    main(parseAsString(argv['dir']).orElseThrowDefault('dir'));
+                    main(
+                        parseAsString(argv['dir']).orElseThrowDefault('dir'),
+                        []
+                    );
                 } catch {
                     process.exit(1);
                 }
@@ -172,7 +203,7 @@ export default (args: Array<string>) =>
         .example(
             "Assume javascript files are placed in folder called 'build'\nThe command will be as below\n$0 add --dir=build",
             `.
-            1. dir stands for the directory of the javascript code. (string)
+            1. dir stands for the directory of that needs to add .js extension. (string)
             `
         )
         .help()
