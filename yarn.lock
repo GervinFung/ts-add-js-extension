@@ -111,6 +111,13 @@ color-name@~1.1.4:
   resolved "https://registry.yarnpkg.com/color-name/-/color-name-1.1.4.tgz#c2a09a87acbde69543de6f63fa3995c826c536a2"
   integrity sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==
 
+console-table-printer@^2.11.0:
+  version "2.11.0"
+  resolved "https://registry.yarnpkg.com/console-table-printer/-/console-table-printer-2.11.0.tgz#704a74cb56d66267a2527f500fedcaa78ca76259"
+  integrity sha512-F5H5/lFciTV2OBI/xDh/x7nZAM6YPqkbkoIxr8px4B/nSvUV4ymsi4BL0bwRwrRcOgtp/LqGJGgGmkicAMd8LQ==
+  dependencies:
+    simple-wcswidth "^1.0.1"
+
 debug@^4.3.2:
   version "4.3.3"
   resolved "https://registry.yarnpkg.com/debug/-/debug-4.3.3.tgz#04266e0b70a98d4462e6e288e38259213332b664"
@@ -291,6 +298,11 @@ semver@^7.3.5:
   integrity sha512-PoeGJYh8HK4BTO/a9Tf6ZG3veo/A7ZVsYrSA6J8ny9nb3B1VrpkuN+z9OE5wfE5p6H4LchYZsegiQgbJD94ZFQ==
   dependencies:
     lru-cache "^6.0.0"
+
+simple-wcswidth@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/simple-wcswidth/-/simple-wcswidth-1.0.1.tgz#8ab18ac0ae342f9d9b629604e54d2aa1ecb018b2"
+  integrity sha512-xMO/8eNREtaROt7tJvWJqHBDTMFN4eiQ5I4JRMuilwfnFcV5W9u7RUkueNkdw0jPqGMX36iCywelS5yilTuOxg==
 
 slash@^3.0.0:
   version "3.0.0"

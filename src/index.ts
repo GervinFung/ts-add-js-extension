@@ -1,8 +1,13 @@
 import { AST, parse } from '@typescript-eslint/typescript-estree';
 import * as fs from 'fs';
-import { parseAsReadonlyArray, parseAsString } from 'parse-dont-validate';
+import {
+    parseAsBoolean,
+    parseAsReadonlyArray,
+    parseAsString,
+} from 'parse-dont-validate';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
+import { Table } from 'console-table-printer';
 
 type Node = Readonly<{
     file: string;
@@ -15,8 +20,8 @@ type Node = Readonly<{
 }>;
 
 type AddJSNode = Readonly<{
-    oldCode: string;
-    newCode: string;
+    before: string;
+    after: string;
 }>;
 
 type WriteCode = Readonly<{
@@ -26,6 +31,8 @@ type WriteCode = Readonly<{
 
 type Files = ReadonlyArray<string>;
 
+type ReplaceNodes = ReadonlyArray<AddJSNode>;
+
 const getAllJavaScriptFiles = (dir: string): Files =>
     fs.readdirSync(dir).flatMap((file) => {
         const path = `${dir}/${file}`;
@@ -33,7 +40,7 @@ const getAllJavaScriptFiles = (dir: string): Files =>
             return getAllJavaScriptFiles(path);
         }
         const extension = path.split('.').pop();
-        return extension ? (extension === 'js' ? [path] : []) : [];
+        return !extension ? [] : extension !== 'js' ? [] : [path];
     });
 
 const readCode = (files: string): Promise<string> =>
@@ -57,13 +64,33 @@ const getAllJavaScriptCodes = (files: Files): ReadonlyArray<Promise<Node>> =>
         };
     });
 
-const addExtension = (
+const addJSExtension = ({
+    path,
+    importPath,
+}: Readonly<{
+    path: string;
+    importPath: string;
+}>) => {
+    const isDirectory = fs.existsSync(path) && fs.lstatSync(path).isDirectory();
+    const defaultFile = `${!isDirectory ? '' : '/index'}.js`;
+    return {
+        filePathForFileImported: `${path}${defaultFile}`.replace('//', '/'),
+        importPath: `${importPath}${defaultFile}`,
+    };
+};
+
+const importExportWithJSExtension = (
     { ast: { body }, code, file }: Node,
     files: Files
-): ReadonlyArray<WriteCode> => {
+): ReadonlyArray<
+    WriteCode &
+        Readonly<{
+            replaceNodes: ReplaceNodes;
+        }>
+> => {
     const codeWithoutCarriageReturn = code.replace(/\r/gm, '');
     const splitted = codeWithoutCarriageReturn.split('\n');
-    const replaceNodes: ReadonlyArray<AddJSNode> = body.flatMap((statement) => {
+    const replaceNodes: ReplaceNodes = body.flatMap((statement) => {
         const { type } = statement;
         switch (type) {
             case 'ExportAllDeclaration':
@@ -89,14 +116,17 @@ const addExtension = (
                 const removeRelativeImportCount = value.startsWith('./')
                     ? 1
                     : value.split('../').length;
-                const pathToReaplceRelativeImport = file
+                const pathToReplaceRelativeImport = file
                     .split('/')
                     .slice(0, removeRelativeImportCount * -1)
                     .join('/');
-                const filePathForFileImported = `${pathToReaplceRelativeImport}/${value
-                    .split('/')
-                    .filter((val) => val !== '..' && val !== '.')
-                    .join('/')}.js`;
+                const { filePathForFileImported, importPath } = addJSExtension({
+                    importPath: value,
+                    path: `${pathToReplaceRelativeImport}/${value
+                        .split('/')
+                        .filter((val) => val !== '..' && val !== '.')
+                        .join('/')}`,
+                });
                 // if file name not included in list of js file read
                 const fileFound = files.find(
                     (file) => file === filePathForFileImported
@@ -104,15 +134,15 @@ const addExtension = (
                 if (!fileFound) {
                     return [];
                 }
-                const oldCode = splitted[end.line - 1];
-                if (!oldCode) {
-                    throw new Error(`Old Code: ${oldCode} is undefined`);
+                const before = splitted[end.line - 1];
+                if (!before) {
+                    throw new Error(`Old Code: ${before} is undefined`);
                 }
                 if (!value.includes('.js')) {
                     return [
                         {
-                            oldCode,
-                            newCode: oldCode.replace(value, `${value}.js`),
+                            before,
+                            after: before.replace(value, importPath),
                         },
                     ];
                 }
@@ -123,18 +153,65 @@ const addExtension = (
     return [
         {
             file,
+            replaceNodes,
             code: !replaceNodes.length
                 ? codeWithoutCarriageReturn
                 : replaceNodes.reduce(
-                      (prev, { oldCode, newCode }) =>
-                          prev.replace(oldCode, newCode),
+                      (prev, { before, after }) => prev.replace(before, after),
                       codeWithoutCarriageReturn
                   ),
         },
     ];
 };
 
-const main = async (dir: string, include: ReadonlyArray<string>) => {
+const tabulateChanges = (
+    changes: ReadonlyArray<{
+        replaceNodes: ReplaceNodes;
+        file: string;
+    }>
+) => {
+    const table = new Table({
+        columns: [
+            { name: 'index', alignment: 'left' },
+            { name: 'file', alignment: 'left' },
+            { name: 'before', alignment: 'left' },
+            { name: 'after', alignment: 'left' },
+        ],
+    });
+    table.table.title = 'The Output of ts-add-js-extension';
+    changes.forEach(({ replaceNodes, file }, changeIndex) =>
+        replaceNodes.forEach(({ before, after }, index) => {
+            const currentIndex = index + 1;
+            table.addRow(
+                {
+                    index:
+                        changes
+                            .map((change, index) =>
+                                index >= changeIndex
+                                    ? 0
+                                    : change.replaceNodes.length
+                            )
+                            .reduce((prev, curr) => prev + curr) + currentIndex,
+                    file,
+                    before,
+                    after,
+                },
+                { color: 'cyan' }
+            );
+        })
+    );
+    table.printTable();
+};
+
+const main = async ({
+    dir,
+    include,
+    showChanges,
+}: Readonly<{
+    dir: string;
+    include: ReadonlyArray<string>;
+    showChanges: boolean;
+}>) => {
     const files = getAllJavaScriptFiles(dir);
     if (files.length === 0) {
         console.log(
@@ -151,22 +228,29 @@ const main = async (dir: string, include: ReadonlyArray<string>) => {
     const allIncludedFiles: Files = files.concat(
         include.flatMap(getAllJavaScriptFiles)
     );
-    await Promise.all(
-        (
-            await getAllJavaScriptCodes(files).reduce(
-                async (prev, curr) => (await prev).concat(await curr),
-                Promise.resolve([] as ReadonlyArray<Node>)
-            )
+    const withJSExtension = (
+        await getAllJavaScriptCodes(files).reduce(
+            async (prev, curr) => (await prev).concat(await curr),
+            Promise.resolve([] as ReadonlyArray<Node>)
         )
-            .flatMap((t) => addExtension(t, allIncludedFiles))
-            .map(({ code, file }) =>
-                fs.writeFile(file, code, (err) => {
-                    if (err) {
-                        console.error(err);
-                    }
-                })
-            )
+    ).flatMap((t) => importExportWithJSExtension(t, allIncludedFiles));
+    await Promise.all(
+        withJSExtension.map(({ code, file }) =>
+            fs.writeFile(file, code, (err) => {
+                if (err) {
+                    console.error(err);
+                }
+            })
+        )
     );
+    if (showChanges) {
+        tabulateChanges(
+            withJSExtension.map(({ replaceNodes, file }) => ({
+                replaceNodes: replaceNodes.flat(),
+                file,
+            }))
+        );
+    }
     if (dir) {
         console.log('Completed adding .js extension to each relative import');
     }
@@ -194,25 +278,38 @@ export default (args: Array<string>) =>
                     demandOption: false,
                     type: 'array',
                 },
+                showchanges: {
+                    describe:
+                        'Show changes made to import/export declaration in table format',
+                    demandOption: false,
+                    default: true,
+                    type: 'boolean',
+                },
             },
             handler(argv) {
                 try {
-                    main(
-                        parseAsString(argv['dir']).orElseThrowDefault('dir'),
-                        parseAsReadonlyArray(argv['include'], (dir) =>
+                    main({
+                        dir: parseAsString(argv['dir']).orElseThrowDefault(
+                            'dir'
+                        ),
+                        include: parseAsReadonlyArray(argv['include'], (dir) =>
                             parseAsString(dir).orElseThrowDefault(`dir: ${dir}`)
-                        ).orElseGetReadonlyEmptyArray()
-                    );
+                        ).orElseGetReadonlyEmptyArray(),
+                        showChanges: parseAsBoolean(
+                            argv['showchanges']
+                        ).orElseGetTrue(),
+                    });
                 } catch {
                     process.exit(1);
                 }
             },
         })
         .example(
-            "Assume javascript files are placed in folder called 'build'\nThe command will be as below\n$0 add --dir=build",
+            "Assume javascript files are placed in folder called 'build'\nThe command will be as below\n$0 add --dir=dist --include=common dist build --showchanges=true",
             `.
-            1. dir stands for the directory of that needs to add .js extension. (string)
-            2. include stands for the directory of files that is imported or included in 'dir' folder, exclusing the 'dir' specified. (array)
+            1. "dir" stands for the directory of that needs to add .js extension. (string)
+            2. "include" stands for the directory of files that is imported or included in 'dir' folder, exclusing the 'dir' specified. (array)
+            3. "showchanges" determines whether to show the changes made to import/export in table format. (boolean)
             `
         )
         .help()

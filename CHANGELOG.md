@@ -1,3 +1,8 @@
+## 1.2.0 (6 May 2022)
+
+-   (Feat) Auto add `/index.js` for import/export statement as we can omit `index` at the end of import/export
+-   (Feat) Show import/export that has changed, can optionally turn it off as it's on by default
+
 ## 1.1.0 (6 May 2022)
 
 -   (Fix) Read all javascript files to make sure relative imported file is JavaScript file before adding `.js` extension

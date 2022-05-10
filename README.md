@@ -5,77 +5,32 @@ Initially meant for TypeScript NodeJS projects only, however if you are lazy to 
 What it does is it add `.js` extension to each relative import and export for ES Module JavaScript, so you don't have to do it yourself
 
 **Note**:
-This package will only work if the import contain file name in the import or export statement.
-
-For example, assume that you have a file named `index.ts` inside a math folder, it's possible to not include `/index` in your import statement
-
-However, this package only work for the following code because it needs the file name specified
-
-```ts
-import { add } from './math/index';
-console.log(add(2, 1));
-```
-
-That means, this package won't work for the following example there's no `index.ts` file specified
-
-```ts
-import { add } from './math';
-console.log(add(2, 1));
-```
-
-## **_How it works_**
-
-### For import statement
+This package will automatically add `/index.js` for import/export statement as we can omit `index` at the end of import/export
 
 #### In TypeScript / JavaScript file
 
 ```ts
-import { add } from './math/index';
-import math from './math/index';
+import { add } from './math;
+export { add, sub, mul, div } from './math;
 
-console.log(add(2, 1) === math.add(2, 1));
+import div from './math/div';
+export * as div from './math/div';
+
+console.log(add(2, 1));
 ```
-
 #### will yield
 
-```js
+```ts
 import { add } from './math/index.js';
-import math from './math/index.js';
-
-console.log(add(2, 1) === math.add(2, 1));
-```
-
-#### instead of
-
-```ts
-import { add } from './math/index';
-import math from './math/index';
-
-console.log(add(2, 1) === math.add(2, 1));
-```
-
-### For export statement
-
-#### In TypeScript / JavaScript file
-
-```ts
-export { add, sub, mul, div } from './math/index';
-export * from './math/index';
-```
-
-#### will yield
-
-```js
 export { add, sub, mul, div } from './math/index.js';
-export * from './math/index.js';
-```
 
-#### instead of
+import div from './math.div.js';
+export * as div from './math/div.js';
 
-```ts
-export { add, sub, mul, div } from './math/index';
-export * from './math/index';
+console.log(add(2, 1));
 ```
+### Need a sample output?
+![Sample](docs/sample.png "Sample")
 
 ## **_Question_**
 
@@ -104,6 +59,7 @@ There are two arugments
 | :--- | :--- | :--- |
 | dir | The folder that need to add .js extension | **Required** |
 | include | The folder of files that is imported or included in `dir` folder, exclusing the `dir` specified | **Optional** |
+| showchanges | Determine whether to show showchanges for changed files in table format. default to `true` | **Optional** |
 
 ### In package.json add:
 
@@ -122,7 +78,7 @@ If you need to include various root folder, for example, `common`, `dist`, `buil
 ```json
 {
     "scripts": {
-        "build:ts-add-js-extension": "ts-add-js-extension add --dir=dist --include=common dist build"
+        "build:ts-add-js-extension": "ts-add-js-extension add --dir=dist --include=common dist build --showchanges=true"
     }
 }
 ```
