@@ -8,3 +8,6 @@ build:
 
 test: build
 	cd test && rm -rf output && mkdir output && cp -r sample/* output && cd ../ && node test
+
+install:
+	yarn install --frozen-lockfile

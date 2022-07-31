@@ -1,7 +1,7 @@
 {
     "name": "ts-add-js-extension",
     "description": "Add .js extension to each relative import and export in JavaScript file",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "main": "build/index.js",
     "license": "MIT",
     "type": "module",
