@@ -1,3 +1,7 @@
+## 1.2.1 (31 July 2022)
+
+-   (Chore) Remove `tsbuild-config` from build
+
 ## 1.2.0 (6 May 2022)
 
 -   (Feat) Auto add `/index.js` for import/export statement as we can omit `index` at the end of import/export

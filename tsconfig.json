@@ -1,6 +1,5 @@
 {
     "compilerOptions": {
-        "incremental": true,
         "target": "ESNEXT",
         "module": "ESNEXT",
         "allowJs": false,
