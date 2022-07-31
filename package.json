@@ -16,6 +16,7 @@
         "build"
     ],
     "scripts": {
+        "setup": "yarn install --frozen-lockfile",
         "build": "rm -rf build && tsc",
         "pretest": "yarn build && make create && make copy",
         "test": "node test/index.js"
