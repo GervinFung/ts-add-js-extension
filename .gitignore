@@ -1,15 +1,7 @@
-/node_modules
+node_modules
 # production
-/build
+build
 # misc
-.DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-/test/output
-
-npm-debug.log*
+test/output
 yarn-debug.log*
 yarn-error.log*
