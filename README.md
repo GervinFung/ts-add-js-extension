@@ -10,7 +10,7 @@ This package will automatically add `/index.js` for import/export statement as w
 #### In TypeScript / JavaScript file
 
 ```ts
-import { add } from './math;
+import { add } from './math';
 export { add, sub, mul, div } from './math;
 
 import div from './math/div';
@@ -18,6 +18,7 @@ export * as div from './math/div';
 
 console.log(add(2, 1));
 ```
+
 #### will yield
 
 ```ts
@@ -29,8 +30,10 @@ export * as div from './math/div.js';
 
 console.log(add(2, 1));
 ```
+
 ### Need a sample output?
-![Sample](docs/sample.png "Sample")
+
+![Sample](docs/sample.png 'Sample')
 
 ## **_Question_**
 
