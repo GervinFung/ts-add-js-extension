@@ -1,3 +1,8 @@
+## 1.2.1 (6 Sept 2022)
+
+-   (Fix) README JS code block render
+-   (Chore) Simplify some code
+
 ## 1.2.1 (31 July 2022)
 
 -   (Chore) Remove `tsbuild-config` from build

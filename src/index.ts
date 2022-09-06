@@ -40,7 +40,7 @@ const getAllJavaScriptFiles = (dir: string): Files =>
             return getAllJavaScriptFiles(path);
         }
         const extension = path.split('.').pop();
-        return !extension ? [] : extension !== 'js' ? [] : [path];
+        return !extension || extension !== 'js' ? [] : [path];
     });
 
 const readCode = (files: string): Promise<string> =>
@@ -213,7 +213,7 @@ const main = async ({
     showChanges: boolean;
 }>) => {
     const files = getAllJavaScriptFiles(dir);
-    if (files.length === 0) {
+    if (!files.length) {
         console.log(
             `No files with .js extension was found in the specified folder of ${dir}. If this behavior is unexpected, Please file an issue, your feedback is greatly appreciated. Adios...`
         );
@@ -286,7 +286,7 @@ export default (args: Array<string>) =>
                     type: 'boolean',
                 },
             },
-            handler(argv) {
+            handler: (argv) => {
                 try {
                     main({
                         dir: parseAsString(argv['dir']).orElseThrowDefault(
