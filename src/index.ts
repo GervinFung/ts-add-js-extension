@@ -292,15 +292,11 @@ export default (args: Array<string>) => {
                 },
             },
             handler: (argv) => {
-                const showChanges = argv['showchanges'];
                 const include = argv['include'];
                 try {
                     main({
-                        dir: parseAsString(argv['dir'], 'dir'),
-                        showChanges:
-                            typeof showChanges === 'boolean'
-                                ? showChanges
-                                : true,
+                        dir: argv['dir'] as string,
+                        showChanges: argv['showchanges'] as boolean,
                         include: !Array.isArray(include)
                             ? []
                             : include.map((dir) =>
