@@ -1,4 +1,10 @@
-## 1.2.1 (6 Sept 2022)
+## 1.2.3 (9 Sept 2022)
+
+-   (Fix) README JS code block render
+-   (Chore) Improve README
+-   (Chore) Remove `parse-dont-validate` as parsing can be done manually
+
+## 1.2.2 (6 Sept 2022)
 
 -   (Fix) README JS code block render
 -   (Chore) Simplify some code

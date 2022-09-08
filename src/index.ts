@@ -1,10 +1,5 @@
 import { AST, parse } from '@typescript-eslint/typescript-estree';
 import * as fs from 'fs';
-import {
-    parseAsBoolean,
-    parseAsReadonlyArray,
-    parseAsString,
-} from 'parse-dont-validate';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { Table } from 'console-table-printer';
@@ -252,52 +247,65 @@ const main = async ({
         );
     }
     if (dir) {
-        console.log('Completed adding .js extension to each relative import');
+        console.log(
+            'Completed adding .js extension to each relative import/export statement'
+        );
     }
     console.log("It's done...\nThank you for using me! Have a wonderful day!");
 };
 
-export default (args: Array<string>) =>
-    yargs(hideBin(args))
-        .usage(
-            'Use to add .js extension for the relative imports in the javascript code if there is lack of .js extension in the import.'
-        )
+const parseAsString = (s: unknown, name: string) => {
+    if (typeof s === 'string') {
+        return s;
+    }
+    throw new Error(
+        `expect ${name} to be string, got s: ${s} as ${typeof s} instead`
+    );
+};
+
+export default (args: Array<string>) => {
+    const describe =
+        'Use to add .js extension for the relative import/export statement in the JavaScript code if there is lack of .js extension in the import/export statement.';
+    return yargs(hideBin(args))
+        .usage(describe)
         .command({
             command: 'add',
-            describe:
-                'Use to add .js extension for the relative imports in the javascript code if there is lack of .js extension in the import.',
+            describe,
             builder: {
                 dir: {
-                    describe: 'The folder that need to add .js extension',
-                    demandOption: true,
                     type: 'string',
+                    demandOption: true,
+                    describe: 'The folder that need to add .js extension',
                 },
                 include: {
+                    type: 'array',
+                    demandOption: false,
                     describe:
                         'The folder of files that is imported or included in `dir` folder, exclusing the `dir` specified',
-                    demandOption: false,
-                    type: 'array',
                 },
                 showchanges: {
-                    describe:
-                        'Show changes made to import/export declaration in table format',
-                    demandOption: false,
                     default: true,
                     type: 'boolean',
+                    demandOption: false,
+                    describe:
+                        'Show changes made to import/export declaration in table format',
                 },
             },
             handler: (argv) => {
+                const showChanges = argv['showchanges'];
+                const include = argv['include'];
                 try {
                     main({
-                        dir: parseAsString(argv['dir']).orElseThrowDefault(
-                            'dir'
-                        ),
-                        include: parseAsReadonlyArray(argv['include'], (dir) =>
-                            parseAsString(dir).orElseThrowDefault(`dir: ${dir}`)
-                        ).orElseGetReadonlyEmptyArray(),
-                        showChanges: parseAsBoolean(
-                            argv['showchanges']
-                        ).orElseGetTrue(),
+                        dir: parseAsString(argv['dir'], 'dir'),
+                        showChanges:
+                            typeof showChanges === 'boolean'
+                                ? showChanges
+                                : true,
+                        include: !Array.isArray(include)
+                            ? []
+                            : include.map((dir) =>
+                                  parseAsString(dir, `dir: ${dir}`)
+                              ),
                     });
                 } catch {
                     process.exit(1);
@@ -314,3 +322,4 @@ export default (args: Array<string>) =>
         )
         .help()
         .strict().argv;
+};
