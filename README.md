@@ -5,7 +5,10 @@ Initially meant for TypeScript projects only, however, if you are lazy to add `.
 It add `.js` extension to each relative import and export for ES Module JavaScript, so you don't have to do it yourself, especially for TypeScript projects that targets ES Module
 
 **Note**:
+
 This package will automatically add `/index.js` for import/export statement whenever it should as we can omit `index` at the end of import/export
+
+Also, it will ignore for edge cases such as importing/exporting from a file named as `**.js.js`, resulting in `import * as Smth from '../**.js'`.
 
 #### In TypeScript / JavaScript file
 
@@ -25,7 +28,7 @@ console.log(add(2, 1));
 import { add } from './math/index.js';
 export { add, sub, mul, div } from './math/index.js';
 
-import div from './math.div.js';
+import div from './math/div.js';
 export * as div from './math/div.js';
 
 console.log(add(2, 1));

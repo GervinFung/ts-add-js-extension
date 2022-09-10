@@ -1,5 +1,5 @@
 import { AST, parse } from '@typescript-eslint/typescript-estree';
-import * as fs from 'fs';
+import fs from 'fs';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { Table } from 'console-table-printer';
@@ -33,9 +33,10 @@ const getAllJavaScriptFiles = (dir: string): Files =>
         const path = `${dir}/${file}`;
         if (fs.statSync(path).isDirectory()) {
             return getAllJavaScriptFiles(path);
+        } else {
+            const extension = path.split('.').pop();
+            return !extension || extension !== 'js' ? [] : [path];
         }
-        const extension = path.split('.').pop();
-        return !extension || extension !== 'js' ? [] : [path];
     });
 
 const readCode = (files: string): Promise<string> =>
@@ -59,25 +60,63 @@ const getAllJavaScriptCodes = (files: Files): ReadonlyArray<Promise<Node>> =>
         };
     });
 
+const formProperFilePath = ({
+    delimiter,
+    filePath,
+}: Readonly<{
+    delimiter: string;
+    filePath: string;
+}>) => filePath.split(delimiter).filter(Boolean).join(delimiter);
+
 const addJSExtension = ({
     path,
     importPath,
+    delimiter,
 }: Readonly<{
     path: string;
     importPath: string;
-}>) => {
+    delimiter: string;
+}>): Readonly<
+    | {
+          type: 'skip';
+      }
+    | {
+          type: 'proceed';
+          importPath: string;
+          filePathForFileImported: string;
+      }
+> => {
     const isDirectory = fs.existsSync(path) && fs.lstatSync(path).isDirectory();
     const defaultFile = `${!isDirectory ? '' : '/index'}.js`;
-    return {
-        filePathForFileImported: `${path}${defaultFile}`.replace('//', '/'),
-        importPath: `${importPath}${defaultFile}`,
-    };
+    const isJavaScript = !isDirectory && path.endsWith('.js');
+    return isJavaScript
+        ? {
+              type: 'skip',
+          }
+        : {
+              type: 'proceed',
+              importPath: formProperFilePath({
+                  delimiter,
+                  filePath: `${importPath}${defaultFile}`,
+              }),
+              filePathForFileImported: formProperFilePath({
+                  delimiter,
+                  filePath: `${path}${defaultFile}`,
+              }),
+          };
 };
 
-const importExportWithJSExtension = (
-    { ast: { body }, code, file }: Node,
-    files: Files
-): ReadonlyArray<
+const importExportWithJSExtension = ({
+    files,
+    node: {
+        ast: { body },
+        code,
+        file,
+    },
+}: Readonly<{
+    node: Node;
+    files: Files;
+}>): ReadonlyArray<
     WriteCode &
         Readonly<{
             replaceNodes: ReplaceNodes;
@@ -88,62 +127,88 @@ const importExportWithJSExtension = (
     const replaceNodes: ReplaceNodes = body.flatMap((statement) => {
         const { type } = statement;
         switch (type) {
+            case 'ImportDeclaration':
             case 'ExportAllDeclaration':
-            case 'ExportNamedDeclaration':
-            case 'ImportDeclaration': {
+            case 'ExportNamedDeclaration': {
                 const { source } = statement;
                 if (!source) {
                     return [];
-                }
-                const {
-                    value,
-                    loc: { end },
-                } = source;
-                const fileName = value.split('/').pop();
-                if (!fileName) {
-                    throw new Error(
-                        `Impossible for file name to be non-existent for ${value}`
-                    );
-                }
-                if (value.charAt(0) !== '.') {
-                    return [];
-                }
-                const removeRelativeImportCount = value.startsWith('./')
-                    ? 1
-                    : value.split('../').length;
-                const pathToReplaceRelativeImport = file
-                    .split('/')
-                    .slice(0, removeRelativeImportCount * -1)
-                    .join('/');
-                const { filePathForFileImported, importPath } = addJSExtension({
-                    importPath: value,
-                    path: `${pathToReplaceRelativeImport}/${value
-                        .split('/')
-                        .filter((val) => val !== '..' && val !== '.')
-                        .join('/')}`,
-                });
-                // if file name not included in list of js file read
-                const fileFound = files.find(
-                    (file) => file === filePathForFileImported
-                );
-                if (!fileFound) {
-                    return [];
-                }
-                const before = splitted[end.line - 1];
-                if (!before) {
-                    throw new Error(`Old Code: ${before} is undefined`);
-                }
-                if (!value.includes('.js')) {
-                    return [
-                        {
-                            before,
-                            after: before.replace(value, importPath),
-                        },
-                    ];
+                } else {
+                    const {
+                        value,
+                        loc: { end },
+                    } = source;
+                    const delimiter = '/';
+                    const fileName = formProperFilePath({
+                        delimiter,
+                        filePath: !value.endsWith('/')
+                            ? value
+                            : value.slice(0, -1),
+                    })
+                        .split(delimiter)
+                        .pop();
+                    if (!fileName) {
+                        throw new Error(
+                            `Impossible for file name to be non-existent for ${value}`
+                        );
+                    } else if (
+                        !(value.startsWith('./') || value.startsWith('../'))
+                    ) {
+                        return [];
+                    } else {
+                        const removeRelativeImportCount = value.startsWith('./')
+                            ? 1
+                            : value.split('../').length;
+                        const pathToReplaceRelativeImport = file
+                            .split(delimiter)
+                            .slice(0, removeRelativeImportCount * -1)
+                            .join(delimiter);
+                        const result = addJSExtension({
+                            delimiter,
+                            importPath: value,
+                            path: `${pathToReplaceRelativeImport}/${value
+                                .split(delimiter)
+                                .filter((val) => val !== '..' && val !== '.')
+                                .join(delimiter)}`,
+                        });
+                        switch (result.type) {
+                            case 'skip':
+                                return [];
+                            case 'proceed': {
+                                // if file name not included in list of js file read
+                                const { filePathForFileImported, importPath } =
+                                    result;
+                                const fileFound = files.find(
+                                    (file) => file === filePathForFileImported
+                                );
+                                if (!fileFound) {
+                                    return [];
+                                } else {
+                                    const before = splitted[end.line - 1];
+                                    if (!before) {
+                                        throw new Error(
+                                            `Old Code: ${before} is undefined`
+                                        );
+                                    } else {
+                                        return [
+                                            {
+                                                before,
+                                                after: before.replace(
+                                                    value,
+                                                    importPath
+                                                ),
+                                            },
+                                        ];
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
+            default:
+                return [];
         }
-        return [];
     });
     return [
         {
@@ -179,6 +244,9 @@ const tabulateChanges = (
             const currentIndex = index + 1;
             table.addRow(
                 {
+                    file,
+                    before,
+                    after,
                     index:
                         changes
                             .map((change, index) =>
@@ -187,9 +255,6 @@ const tabulateChanges = (
                                     : change.replaceNodes.length
                             )
                             .reduce((prev, curr) => prev + curr) + currentIndex,
-                    file,
-                    before,
-                    after,
                 },
                 { color: 'cyan' }
             );
@@ -228,7 +293,12 @@ const main = async ({
             async (prev, curr) => (await prev).concat(await curr),
             Promise.resolve([] as ReadonlyArray<Node>)
         )
-    ).flatMap((t) => importExportWithJSExtension(t, allIncludedFiles));
+    ).flatMap((node) =>
+        importExportWithJSExtension({
+            node,
+            files: allIncludedFiles,
+        })
+    );
     await Promise.all(
         withJSExtension.map(({ code, file }) =>
             fs.writeFile(file, code, (err) => {
@@ -241,8 +311,8 @@ const main = async ({
     if (showChanges) {
         tabulateChanges(
             withJSExtension.map(({ replaceNodes, file }) => ({
-                replaceNodes: replaceNodes.flat(),
                 file,
+                replaceNodes: replaceNodes.flat(),
             }))
         );
     }
@@ -252,15 +322,6 @@ const main = async ({
         );
     }
     console.log("It's done...\nThank you for using me! Have a wonderful day!");
-};
-
-const parseAsString = (s: unknown, name: string) => {
-    if (typeof s === 'string') {
-        return s;
-    }
-    throw new Error(
-        `expect ${name} to be string, got s: ${s} as ${typeof s} instead`
-    );
 };
 
 export default (args: Array<string>) => {
@@ -299,9 +360,16 @@ export default (args: Array<string>) => {
                         showChanges: argv['showchanges'] as boolean,
                         include: !Array.isArray(include)
                             ? []
-                            : include.map((dir) =>
-                                  parseAsString(dir, `dir: ${dir}`)
-                              ),
+                            : include.map((dir) => {
+                                  const type = typeof dir;
+                                  if (type === 'string') {
+                                      return dir as string;
+                                  } else {
+                                      throw new Error(
+                                          `expect ${dir} to be string, got dir: ${dir} as ${type} instead`
+                                      );
+                                  }
+                              }),
                     });
                 } catch {
                     process.exit(1);
