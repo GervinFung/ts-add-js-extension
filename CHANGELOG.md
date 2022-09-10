@@ -1,4 +1,11 @@
-## 1.2.1 (6 Sept 2022)
+## 1.2.3 (10 Sept 2022)
+
+-   (Fix) README JS code block render
+-   (Fix) Remove `/` from file path that ends with `/` as it cannot be detected as a folder
+-   (Chore) Improve README
+-   (Chore) Remove `parse-dont-validate` as parsing can be done manually
+
+## 1.2.2 (6 Sept 2022)
 
 -   (Fix) README JS code block render
 -   (Chore) Simplify some code
@@ -27,7 +34,7 @@
 
 ## 1.0.0 (13 Jan 2022)
 
--   (Fix!) Removed minification, perform only single function -> Add .js extension to each relative import
+-   (Fix!) Removed minification, perform only single function -> Add .js extension to each relative import/export statement
 
 ## 0.0.5 (4 Dec 2021)
 

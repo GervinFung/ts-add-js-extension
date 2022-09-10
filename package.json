@@ -1,11 +1,11 @@
 {
     "name": "ts-add-js-extension",
     "description": "Add .js extension to each relative import and export in JavaScript file",
-    "version": "1.2.2",
+    "version": "1.2.3",
     "main": "build/index.js",
+    "types": "build/index.d.ts",
     "license": "MIT",
     "type": "module",
-    "types": "build/index.d.ts",
     "bin": {
         "ts-add-js-extension": "bin/ts-add-js-extension.js"
     },
@@ -28,14 +28,13 @@
     },
     "devDependencies": {
         "@types/node": "^16.11.10",
-        "@types/yargs": "^17.0.7",
-        "typescript": "^4.4.4"
+        "@types/yargs": "^17.0.12",
+        "typescript": "^4.8.3"
     },
     "dependencies": {
-        "@typescript-eslint/typescript-estree": "^5.4.0",
-        "console-table-printer": "^2.11.0",
-        "parse-dont-validate": "^1.0.1",
-        "yargs": "^17.3.0"
+        "@typescript-eslint/typescript-estree": "^5.36.2",
+        "console-table-printer": "^2.11.1",
+        "yargs": "^17.5.1"
     },
     "keywords": [
         "js extension",
