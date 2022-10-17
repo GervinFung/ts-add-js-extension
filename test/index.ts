@@ -3,7 +3,7 @@ import testTsAddJsExtension from './process';
 
 const tests: ReadonlyArray<Readonly<[() => void, 'only'?]>> = [
     [testParseConfig],
-    [testTsAddJsExtension, 'only'],
+    [testTsAddJsExtension],
 ];
 
 const selectedTests = tests.filter(([_, only]) => only);
