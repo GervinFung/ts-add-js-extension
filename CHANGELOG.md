@@ -1,3 +1,8 @@
+## 1.2.4 (18 Oct 2022)
+
+-   (Feat) Provide API function `parseConfig` & `tsAddJsExtension`
+-   (Fix) Relative import `.` can be detected
+
 ## 1.2.3 (10 Sept 2022)
 
 -   (Fix) README JS code block render

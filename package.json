@@ -1,11 +1,21 @@
 {
     "name": "ts-add-js-extension",
-    "description": "Add .js extension to each relative import and export in JavaScript file",
-    "version": "1.2.3",
-    "main": "build/index.js",
-    "types": "build/index.d.ts",
+    "description": "Add .js extension to each relative ESM import and export statement in JavaScript file",
+    "version": "1.2.4",
     "license": "MIT",
-    "type": "module",
+    "main": "build/cjs/index.js",
+    "module": "build/mjs/index.js",
+    "types": "build/dts/index.d.ts",
+    "react-native": "build/mjs/index.js",
+    "exports": {
+        "./package.json": "./package.json",
+        ".": {
+            "require": "./build/cjs/index.js",
+            "import": "./build/mjs/index.js",
+            "default": "./build/mjs/index.js",
+            "types": "./build/dts/index.d.ts"
+        }
+    },
     "bin": {
         "ts-add-js-extension": "bin/ts-add-js-extension.js"
     },
@@ -17,26 +27,41 @@
     ],
     "scripts": {
         "setup": "yarn install --frozen-lockfile",
-        "build": "rm -rf build && tsc",
-        "pretest": "yarn build && cd test && rm -rf output && mkdir output && cp -r sample/* output",
-        "test": "node test"
+        "lint": "eslint src/ test/ -f='stylish' --color",
+        "format": "prettier --ignore-path .gitignore --write src/ test/",
+        "format:check": "prettier --ignore-path .gitignore --check src/ test/",
+        "build-mjs": "tsc -p tsconfig.mjs.json",
+        "build-cjs": "tsc -p tsconfig.cjs.json",
+        "build-dts": "tsc -p tsconfig.dts.json",
+        "build": "rm -rf build && yarn build-dts && yarn build-cjs && yarn build-mjs && node script/package.js",
+        "pretest": "cd test && rm -rf output && mkdir output && cp -r sample/** output",
+        "test": "vitest"
     },
-    "bugs": "https://github.com/P-YNPM/ts-add-js-extension/issues",
+    "bugs": "https://github.com/Packer-Man/ts-add-js-extension/issues",
     "repository": {
         "type": "git",
-        "url": "https://github.com/P-YNPM/ts-add-js-extension"
+        "url": "https://github.com/Packer-Man/ts-add-js-extension"
     },
     "devDependencies": {
         "@types/node": "^16.11.10",
-        "@types/yargs": "^17.0.12",
-        "typescript": "^4.8.3"
+        "@types/yargs": "^17.0.13",
+        "@typescript-eslint/eslint-plugin": "^5.40.0",
+        "@typescript-eslint/parser": "^5.40.0",
+        "eslint": "^8.25.0",
+        "prettier": "^2.7.1",
+        "typescript": "^4.8.4",
+        "vitest": "^0.24.3"
     },
     "dependencies": {
-        "@typescript-eslint/typescript-estree": "^5.36.2",
+        "@typescript-eslint/typescript-estree": "^5.40.0",
         "console-table-printer": "^2.11.1",
-        "yargs": "^17.5.1"
+        "yargs": "^17.6.0"
     },
     "keywords": [
+        "esm",
+        "tsc",
+        "typescript",
+        "javascript",
         "js extension",
         "esnext"
     ]

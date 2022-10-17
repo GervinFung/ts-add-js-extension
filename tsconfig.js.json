@@ -1,0 +1,9 @@
+{
+    "extends": "./tsconfig.dts.json",
+    "compilerOptions": {
+        "emitDeclarationOnly": false,
+        "declaration": false,
+        "declarationMap": false,
+        "sourceMap": true
+    }
+}

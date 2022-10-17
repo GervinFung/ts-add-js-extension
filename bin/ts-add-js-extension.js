@@ -1,3 +1,3 @@
 #!/usr/bin/env node
-import parse from '../build/index.js';
-parse(process.argv);
+const main = require('../build/cjs/index.js');
+main.default(process.argv);

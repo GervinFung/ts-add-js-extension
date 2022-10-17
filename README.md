@@ -60,8 +60,6 @@ yarn add -D ts-add-js-extension
 pnpm add -D ts-add-js-extension
 ```
 
-OR
-
 ```sh
 npm i -D ts-add-js-extension
 ```
@@ -74,24 +72,48 @@ There are two arugments
 | include     | The folder of files that is imported or included in `dir` folder, exclusing the `dir` specified | **Optional** |
 | showchanges | Determine whether to show showchanges for changed files in table format. default to `true`      | **Optional** |
 
+## Usage
+
 ### In package.json add:
 
 Your compiled TypeScript folder or JavaScript folder can be named whatever you like, in this case the I will name it as dist
 
+### Command line:
+
 ```json
 {
     "scripts": {
-        "build:ts-add-js-extension": "ts-add-js-extension add --dir=dist"
+        "<command name can be anything>": "ts-add-js-extension add --dir=dist"
     }
 }
 ```
 
+### API:
+
+```js
+tsAddJsExtension({
+    dir: 'dist',
+});
+```
+
 If you need to include various root folder, for example, `common`, `dist`, `build`, you name it
+
+### Command line:
 
 ```json
 {
     "scripts": {
-        "build:ts-add-js-extension": "ts-add-js-extension add --dir=dist --include=common dist build --showchanges=true"
+        "<command name can be anything>": "ts-add-js-extension add --dir=dist --include=common dist build --showchanges=true"
     }
 }
+```
+
+### API:
+
+```js
+tsAddJsExtension({
+    dir: 'dist',
+    showChanges: true,
+    include: ['common', 'dist', 'build'],
+});
 ```
