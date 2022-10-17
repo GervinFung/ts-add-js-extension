@@ -1,0 +1,10 @@
+import * as fs from 'fs';
+import { fs } from './2.js';
+import * as sample2 from './2.js';
+import * as sampleExport2 from '../output/1';
+import * as index from '.';
+import * as index from './';
+export { index } from '.';
+export * as index from '.';
+export { default as x } from '.';
+export { default as x } from './/';

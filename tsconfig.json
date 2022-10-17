@@ -16,12 +16,13 @@
         "resolveJsonModule": true,
         "noUncheckedIndexedAccess": true,
         "pretty": true,
-        "outDir": "build",
+        "outDir": "build/dts",
         "preserveWatchOutput": true,
         "declaration": true,
         "declarationMap": true,
-        "sourceMap": true
+        "sourceMap": true,
+        "types": ["vitest/globals"]
     },
-    "include": ["src"],
+    "include": ["src", "test"],
     "exclude": ["node_modules"]
 }

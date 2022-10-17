@@ -1,0 +1,8 @@
+{
+    "extends": "./tsconfig.js.json",
+    "compilerOptions": {
+        "module": "CommonJS",
+        "outDir": "build/cjs",
+        "target": "ES3"
+    }
+}

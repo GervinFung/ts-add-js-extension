@@ -1,13 +1,14 @@
-import { AST, parse } from '@typescript-eslint/typescript-estree';
+import * as Eslint from '@typescript-eslint/typescript-estree';
 import fs from 'fs';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { Table } from 'console-table-printer';
+import path from 'path';
 
 type Node = Readonly<{
     file: string;
     code: string;
-    ast: AST<
+    ast: Eslint.AST<
         Readonly<{
             loc: true;
         }>
@@ -28,15 +29,16 @@ type Files = ReadonlyArray<string>;
 
 type ReplaceNodes = ReadonlyArray<AddJSNode>;
 
+type Dir = string;
+
 const getAllJavaScriptFiles = (dir: string): Files =>
     fs.readdirSync(dir).flatMap((file) => {
-        const path = `${dir}/${file}`;
-        if (fs.statSync(path).isDirectory()) {
-            return getAllJavaScriptFiles(path);
-        } else {
-            const extension = path.split('.').pop();
-            return !extension || extension !== 'js' ? [] : [path];
-        }
+        const filePath = `${dir}/${file}`;
+        return fs.statSync(filePath).isDirectory()
+            ? getAllJavaScriptFiles(filePath)
+            : !(path.extname(filePath) === '.js')
+            ? []
+            : [filePath];
     });
 
 const readCode = (files: string): Promise<string> =>
@@ -56,7 +58,7 @@ const getAllJavaScriptCodes = (files: Files): ReadonlyArray<Promise<Node>> =>
         return {
             file,
             code,
-            ast: parse(code, { loc: true }),
+            ast: Eslint.parse(code, { loc: true }),
         };
     });
 
@@ -69,11 +71,11 @@ const formProperFilePath = ({
 }>) => filePath.split(delimiter).filter(Boolean).join(delimiter);
 
 const addJSExtension = ({
-    path,
-    importPath,
+    filePath,
     delimiter,
+    importPath,
 }: Readonly<{
-    path: string;
+    filePath: string;
     importPath: string;
     delimiter: string;
 }>): Readonly<
@@ -86,24 +88,26 @@ const addJSExtension = ({
           filePathForFileImported: string;
       }
 > => {
-    const isDirectory = fs.existsSync(path) && fs.lstatSync(path).isDirectory();
+    const isDirectory =
+        fs.existsSync(filePath) && fs.lstatSync(filePath).isDirectory();
+    const isJavaScript = !isDirectory && path.extname(filePath) === '.js';
+    if (isJavaScript) {
+        return {
+            type: 'skip',
+        };
+    }
     const defaultFile = `${!isDirectory ? '' : '/index'}.js`;
-    const isJavaScript = !isDirectory && path.endsWith('.js');
-    return isJavaScript
-        ? {
-              type: 'skip',
-          }
-        : {
-              type: 'proceed',
-              importPath: formProperFilePath({
-                  delimiter,
-                  filePath: `${importPath}${defaultFile}`,
-              }),
-              filePathForFileImported: formProperFilePath({
-                  delimiter,
-                  filePath: `${path}${defaultFile}`,
-              }),
-          };
+    return {
+        type: 'proceed',
+        importPath: formProperFilePath({
+            delimiter,
+            filePath: `${importPath}${defaultFile}`,
+        }),
+        filePathForFileImported: formProperFilePath({
+            delimiter,
+            filePath: `${filePath}${defaultFile}`,
+        }),
+    };
 };
 
 const importExportWithJSExtension = ({
@@ -124,12 +128,14 @@ const importExportWithJSExtension = ({
 > => {
     const codeWithoutCarriageReturn = code.replace(/\r/gm, '');
     const splitted = codeWithoutCarriageReturn.split('\n');
+    const statementType = Eslint.AST_NODE_TYPES;
+
     const replaceNodes: ReplaceNodes = body.flatMap((statement) => {
         const { type } = statement;
         switch (type) {
-            case 'ImportDeclaration':
-            case 'ExportAllDeclaration':
-            case 'ExportNamedDeclaration': {
+            case statementType.ImportDeclaration:
+            case statementType.ExportAllDeclaration:
+            case statementType.ExportNamedDeclaration: {
                 const { source } = statement;
                 if (!source) {
                     return [];
@@ -141,7 +147,7 @@ const importExportWithJSExtension = ({
                     const delimiter = '/';
                     const fileName = formProperFilePath({
                         delimiter,
-                        filePath: !value.endsWith('/')
+                        filePath: !value.endsWith(delimiter)
                             ? value
                             : value.slice(0, -1),
                     })
@@ -151,26 +157,16 @@ const importExportWithJSExtension = ({
                         throw new Error(
                             `Impossible for file name to be non-existent for ${value}`
                         );
-                    } else if (
-                        !(value.startsWith('./') || value.startsWith('../'))
-                    ) {
+                    }
+                    if (!value.startsWith('.')) {
                         return [];
                     } else {
-                        const removeRelativeImportCount = value.startsWith('./')
-                            ? 1
-                            : value.split('../').length;
-                        const pathToReplaceRelativeImport = file
-                            .split(delimiter)
-                            .slice(0, removeRelativeImportCount * -1)
-                            .join(delimiter);
                         const result = addJSExtension({
                             delimiter,
                             importPath: value,
-                            path: `${pathToReplaceRelativeImport}/${value
-                                .split(delimiter)
-                                .filter((val) => val !== '..' && val !== '.')
-                                .join(delimiter)}`,
+                            filePath: path.join(file, '..', value),
                         });
+
                         switch (result.type) {
                             case 'skip':
                                 return [];
@@ -178,29 +174,28 @@ const importExportWithJSExtension = ({
                                 // if file name not included in list of js file read
                                 const { filePathForFileImported, importPath } =
                                     result;
-                                const fileFound = files.find(
-                                    (file) => file === filePathForFileImported
+                                const fileFound = files.find((file) =>
+                                    file.endsWith(filePathForFileImported)
                                 );
                                 if (!fileFound) {
                                     return [];
-                                } else {
-                                    const before = splitted[end.line - 1];
-                                    if (!before) {
-                                        throw new Error(
-                                            `Old Code: ${before} is undefined`
-                                        );
-                                    } else {
-                                        return [
-                                            {
-                                                before,
-                                                after: before.replace(
-                                                    value,
-                                                    importPath
-                                                ),
-                                            },
-                                        ];
-                                    }
                                 }
+
+                                const before = splitted[end.line - 1];
+                                if (!before) {
+                                    throw new Error(
+                                        `Old Code: ${before} is undefined`
+                                    );
+                                }
+                                return [
+                                    {
+                                        before,
+                                        after: before.replace(
+                                            value,
+                                            importPath
+                                        ),
+                                    },
+                                ];
                             }
                         }
                     }
@@ -263,42 +258,17 @@ const tabulateChanges = (
     table.printTable();
 };
 
-const main = async ({
+const postProcess = async ({
     dir,
-    include,
+    shouldLog,
     showChanges,
+    withJSExtension,
 }: Readonly<{
-    dir: string;
-    include: ReadonlyArray<string>;
+    dir: Dir;
+    shouldLog: boolean;
     showChanges: boolean;
+    withJSExtension: ReturnType<typeof importExportWithJSExtension>;
 }>) => {
-    const files = getAllJavaScriptFiles(dir);
-    if (!files.length) {
-        console.log(
-            `No files with .js extension was found in the specified folder of ${dir}. If this behavior is unexpected, Please file an issue, your feedback is greatly appreciated. Adios...`
-        );
-        process.exit(0);
-    }
-    if (dir) {
-        console.log(
-            'Adding .js extension to each relative import/export. Please be patient...'
-        );
-    }
-    // user may import files from `common` into `src`
-    const allIncludedFiles: Files = files.concat(
-        include.flatMap(getAllJavaScriptFiles)
-    );
-    const withJSExtension = (
-        await getAllJavaScriptCodes(files).reduce(
-            async (prev, curr) => (await prev).concat(await curr),
-            Promise.resolve([] as ReadonlyArray<Node>)
-        )
-    ).flatMap((node) =>
-        importExportWithJSExtension({
-            node,
-            files: allIncludedFiles,
-        })
-    );
     await Promise.all(
         withJSExtension.map(({ code, file }) =>
             fs.writeFile(file, code, (err) => {
@@ -316,15 +286,125 @@ const main = async ({
             }))
         );
     }
-    if (dir) {
+    if (withJSExtension.length && shouldLog && dir) {
         console.log(
             'Completed adding .js extension to each relative import/export statement'
         );
     }
-    console.log("It's done...\nThank you for using me! Have a wonderful day!");
 };
 
-export default (args: Array<string>) => {
+const preProcess = ({
+    dir,
+    shouldLog,
+}: Readonly<{
+    dir: Dir;
+    shouldLog: boolean;
+}>) => {
+    const files = getAllJavaScriptFiles(dir);
+    if (shouldLog && !files.length) {
+        console.log(
+            `No files with .js extension was found in the specified folder of ${dir}. If this behavior is unexpected, Please file an issue, your feedback is greatly appreciated. Adios...`
+        );
+    }
+    if (shouldLog && dir) {
+        console.log(
+            'Adding .js extension to each relative import/export. Please be patient...'
+        );
+    }
+    return files;
+};
+
+const midProcess = async ({
+    files,
+    include,
+}: Readonly<{
+    include: ReadonlyArray<string>;
+    files: ReturnType<typeof getAllJavaScriptFiles>;
+}>) => {
+    // user may import files from `common` into `src`
+    const allIncludedFiles: Files = files.concat(
+        include.flatMap(getAllJavaScriptFiles)
+    );
+    return (
+        await getAllJavaScriptCodes(files).reduce(
+            async (prev, curr) => (await prev).concat(await curr),
+            Promise.resolve([] as ReadonlyArray<Node>)
+        )
+    ).flatMap((node) =>
+        importExportWithJSExtension({
+            node,
+            files: allIncludedFiles,
+        })
+    );
+};
+
+type Argv = Parameters<
+    Parameters<ReturnType<typeof yargs>['command']>[0]['handler']
+>[0];
+
+type ParsedConfig = Readonly<{
+    dir: string;
+    showChanges?: boolean;
+    include?: ReadonlyArray<string>;
+}>;
+
+const parseConfig = (argv: Argv): ParsedConfig => {
+    const include = argv['include'];
+    return {
+        dir: argv['dir'] as string,
+        showChanges: argv['showchanges'] as boolean,
+        include: !Array.isArray(include)
+            ? undefined
+            : include.map((dir) => {
+                  const type = typeof dir;
+                  if (type === 'string') {
+                      return dir as string;
+                  }
+                  throw new Error(
+                      `expect ${dir} to be string, got dir: ${dir} as ${type} instead`
+                  );
+              }),
+    };
+};
+
+const finalizedConfig = (config: ParsedConfig) =>
+    ({
+        ...config,
+        showChanges: config.showChanges ?? false,
+        include: config.include ?? [],
+    } as const);
+
+const tsAddJsExtension = async (parsedConfig: ParsedConfig) => {
+    const config = finalizedConfig(parsedConfig);
+    const shouldLog = process.env.TS_ADD_JS_EXTENSION_NODE_ENV !== 'test';
+    return postProcess({
+        shouldLog,
+        dir: config.dir,
+        showChanges: config.showChanges,
+        withJSExtension: await midProcess({
+            include: config.include,
+            files: preProcess({
+                shouldLog,
+                dir: config.dir,
+            }),
+        }),
+    })
+        .then(
+            () =>
+                ({
+                    type: 'done',
+                } as const)
+        )
+        .catch(
+            (error) =>
+                ({
+                    type: 'error',
+                    error,
+                } as const)
+        );
+};
+
+const main = (args: Array<string>) => {
     const describe =
         'Use to add .js extension for the relative import/export statement in the JavaScript code if there is lack of .js extension in the import/export statement.';
     return yargs(hideBin(args))
@@ -353,27 +433,19 @@ export default (args: Array<string>) => {
                 },
             },
             handler: (argv) => {
-                const include = argv['include'];
-                try {
-                    main({
-                        dir: argv['dir'] as string,
-                        showChanges: argv['showchanges'] as boolean,
-                        include: !Array.isArray(include)
-                            ? []
-                            : include.map((dir) => {
-                                  const type = typeof dir;
-                                  if (type === 'string') {
-                                      return dir as string;
-                                  } else {
-                                      throw new Error(
-                                          `expect ${dir} to be string, got dir: ${dir} as ${type} instead`
-                                      );
-                                  }
-                              }),
-                    });
-                } catch {
-                    process.exit(1);
-                }
+                tsAddJsExtension(parseConfig(argv))
+                    .then((result) => {
+                        switch (result.type) {
+                            case 'error':
+                                console.dir(
+                                    {
+                                        error: result.error,
+                                    },
+                                    { depth: null }
+                                );
+                        }
+                    })
+                    .catch((error) => console.dir({ error }, { depth: null }));
             },
         })
         .example(
@@ -387,3 +459,6 @@ export default (args: Array<string>) => {
         .help()
         .strict().argv;
 };
+
+export { parseConfig, tsAddJsExtension };
+export default main;

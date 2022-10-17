@@ -1,0 +1,32 @@
+name: server-ci-cd
+
+on: [push, pull_request]
+
+jobs:
+    all:
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                threads:
+                    - '4'
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v2
+
+            - name: Install Depedencies
+              run: yarn setup
+
+            - name: Run Linter
+              run: yarn lint
+
+            - name: Run Format Check
+              run: yarn format:check
+
+            - name: Run Tests
+              env:
+                  IS_CI: true
+              run: yarn test
+
+            - name: Run Build
+              run: yarn build
