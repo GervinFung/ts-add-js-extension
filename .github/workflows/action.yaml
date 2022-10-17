@@ -21,7 +21,7 @@ jobs:
               run: yarn lint
 
             - name: Run Format Check
-              run: yarn format-check
+              run: yarn format:check
 
             - name: Run Tests
               env:
