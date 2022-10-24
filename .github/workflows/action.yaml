@@ -1,4 +1,4 @@
-name: server-ci-cd
+name: ts-add-js-extension-ci-cd
 
 on: [push, pull_request]
 
