@@ -1,4 +1,5 @@
 import { parseConfig } from '../../src';
+import { describe, it, expect } from 'vitest';
 
 const testParseConfig = () => {
     describe('Config parsing', () => {

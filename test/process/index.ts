@@ -1,4 +1,5 @@
 import { tsAddJsExtension } from '../../src';
+import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 
 const testTsAddJsExtension = () =>

@@ -14,17 +14,22 @@ jobs:
             - name: Checkout Code
               uses: actions/checkout@v2
 
+            - name: Install PNPM
+              run: |
+                  sudo apt install npm
+                  npm i --location=global pnpm
+
             - name: Install Depedencies
-              run: yarn setup
+              run: pnpm installation
 
             - name: Run Linter
-              run: yarn lint
+              run: pnpm lint
 
             - name: Run Format Check
-              run: yarn format-check
+              run: pnpm format-check
 
             - name: Run Tests
-              run: yarn test
+              run: pnpm test
 
             - name: Run Build
-              run: yarn build
+              run: pnpm build
