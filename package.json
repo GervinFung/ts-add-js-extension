@@ -26,16 +26,16 @@
         "build"
     ],
     "scripts": {
-        "setup": "yarn install --frozen-lockfile",
+        "installation": "pnpm i --frozen-lockfile",
         "lint": "eslint src/ test/ -f='stylish' --color",
         "format": "prettier --ignore-path .gitignore --write src/ test/",
         "format-check": "prettier --ignore-path .gitignore --check src/ test/",
         "build-mjs": "tsc -p tsconfig.mjs.json",
         "build-cjs": "tsc -p tsconfig.cjs.json",
         "build-dts": "tsc -p tsconfig.dts.json",
-        "build": "rm -rf build && yarn build-dts && yarn build-cjs && yarn build-mjs && node script/package.js",
-        "pretest": "cd test && rm -rf output && mkdir output && cp -r sample/** output",
-        "test": "vitest"
+        "build": "rm -rf build && pnpm build-dts && pnpm build-cjs && pnpm build-mjs && node script/package.js",
+        "test-setup": "cd test && rm -rf output && mkdir output && cp -r sample/** output",
+        "test": "pnpm test-setup && vitest"
     },
     "bugs": "https://github.com/Packer-Man/ts-add-js-extension/issues",
     "repository": {
