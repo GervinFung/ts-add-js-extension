@@ -1,3 +1,7 @@
+## 1.2.5 (25 Oct 2022)
+
+-   (Chore) Remove unnecessary log
+
 ## 1.2.4 (18 Oct 2022)
 
 -   (Feat) Provide API function `parseConfig` & `tsAddJsExtension`
