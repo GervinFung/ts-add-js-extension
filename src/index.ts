@@ -307,9 +307,7 @@ const preProcess = ({
         );
     }
     if (shouldLog && dir) {
-        console.log(
-            'Adding .js extension to each relative import/export. Please be patient...'
-        );
+        console.log('Adding .js extension to each relative import/export');
     }
     return files;
 };
