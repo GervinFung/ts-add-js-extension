@@ -98,12 +98,12 @@ export default class Progress {
         );
 
         if (errors.length) {
-            console.log(
+            console.error(
                 `The following file${
                     errors.length === 1 ? '' : 's'
                 } failed to be add JavaScript file extension of ${extension}`
             );
-            console.log(
+            console.error(
                 Array.from(errors)
                     .sort((a, b) => a.file.length - b.file.length)
                     .map(

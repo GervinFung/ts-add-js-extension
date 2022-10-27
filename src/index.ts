@@ -448,16 +448,12 @@ const main = (args: Array<string>) => {
                 tsAddJsExtension(parseConfig(argv))
                     .then((result) => {
                         switch (result.type) {
-                            case 'error':
-                                console.dir(
-                                    {
-                                        error: result.error,
-                                    },
-                                    { depth: null }
-                                );
+                            case 'error': {
+                                console.error(result.error);
+                            }
                         }
                     })
-                    .catch((error) => console.dir({ error }, { depth: null }));
+                    .catch(console.error);
             },
         })
         .example(
