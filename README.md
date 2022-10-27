@@ -66,11 +66,12 @@ npm i -D ts-add-js-extension
 
 There are two arugments
 
-| Argument    | Usage                                                                                           | Type         |
-| :---------- | :---------------------------------------------------------------------------------------------- | :----------- |
-| dir         | The folder that need to add .js extension                                                       | **Required** |
-| include     | The folder of files that is imported or included in `dir` folder, exclusing the `dir` specified | **Optional** |
-| showchanges | Determine whether to show showchanges for changed files in table format. default to `true`      | **Optional** |
+| Argument    | Usage                                                                                                                           | Type         |
+| :---------- | :------------------------------------------------------------------------------------------------------------------------------ | :----------- |
+| dir         | The folder that need to add .js extension                                                                                       | **Required** |
+| include     | The folder of files that is imported or included in `dir` folder, exclusing the `dir` specified                                 | **Optional** |
+| showchanges | Determine whether to show showchanges for changed files in table format. default to `true`                                      | **Optional** |
+| extension   | Search for JavaScript file that ends with that extension and add that extension to each relative import/export, default to `js` | **Optional** |
 
 ## Usage
 
@@ -103,7 +104,7 @@ If you need to include various root folder, for example, `common`, `dist`, `buil
 ```json
 {
     "scripts": {
-        "<command name can be anything>": "ts-add-js-extension add --dir=dist --include=common dist build --showchanges=true"
+        "<command name can be anything>": "ts-add-js-extension add --dir=dist --include=common dist build --showchanges=true --extension=mjs"
     }
 }
 ```
@@ -113,6 +114,7 @@ If you need to include various root folder, for example, `common`, `dist`, `buil
 ```js
 tsAddJsExtension({
     dir: 'dist',
+    extension: 'mjs',
     showChanges: true,
     include: ['common', 'dist', 'build'],
 });

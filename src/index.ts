@@ -4,7 +4,6 @@ import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { Table } from 'console-table-printer';
 import path from 'path';
-import showProgress from './progress';
 
 type Node = Readonly<{
     file: string;
@@ -30,14 +29,34 @@ type Files = ReadonlyArray<string>;
 
 type ReplaceNodes = ReadonlyArray<AddJSNode>;
 
-type Dir = string;
+type Argv = Parameters<
+    Parameters<ReturnType<typeof yargs>['command']>[0]['handler']
+>[0];
 
-const getAllJavaScriptFiles = (dir: string): Files =>
+type ParsedConfig = Readonly<{
+    dir: string;
+    showChanges?: boolean;
+    extension?: 'js' | 'mjs';
+    include?: ReadonlyArray<string>;
+}>;
+
+type FinalizedConfig = ReturnType<typeof finalizedConfig>;
+
+const getAllJavaScriptFiles = ({
+    dir,
+    extension,
+}: Readonly<{
+    dir: string;
+    extension: FinalizedConfig['extension'];
+}>): Files =>
     fs.readdirSync(dir).flatMap((file) => {
         const filePath = `${dir}/${file}`;
         return fs.statSync(filePath).isDirectory()
-            ? getAllJavaScriptFiles(filePath)
-            : !(path.extname(filePath) === '.js')
+            ? getAllJavaScriptFiles({
+                  extension,
+                  dir: filePath,
+              })
+            : !(path.extname(filePath) === extension)
             ? []
             : [filePath];
     });
@@ -78,7 +97,7 @@ const addJSExtension = ({
     filePath: string;
     importPath: string;
     delimiter: string;
-    extension: ParsedConfig['extension'];
+    extension: FinalizedConfig['extension'];
 }>): Readonly<
     | {
           type: 'skip';
@@ -97,7 +116,7 @@ const addJSExtension = ({
             type: 'skip',
         };
     }
-    const defaultFile = `${!isDirectory ? '' : '/index'}.${extension}`;
+    const defaultFile = `${!isDirectory ? '' : '/index'}${extension}`;
     return {
         type: 'proceed',
         importPath: formProperFilePath({
@@ -122,7 +141,7 @@ const importExportWithJSExtension = ({
 }: Readonly<{
     node: Node;
     allIncludedFiles: Files;
-    extension: ParsedConfig['extension'];
+    extension: FinalizedConfig['extension'];
 }>): ReadonlyArray<
     WriteCode &
         Readonly<{
@@ -172,8 +191,9 @@ const importExportWithJSExtension = ({
                         });
 
                         switch (result.type) {
-                            case 'skip':
+                            case 'skip': {
                                 return [];
+                            }
                             case 'proceed': {
                                 // if file name not included in list of js file read
                                 const { filePathForFileImported, importPath } =
@@ -264,7 +284,7 @@ const tabulateChanges = (
     table.printTable();
 };
 
-const postProcess = async ({
+const updateFiles = async ({
     shouldLog,
     showChanges,
     withJSExtension,
@@ -277,20 +297,15 @@ const postProcess = async ({
         console.log('Adding .js extension to each relative import/export\n');
     }
 
-    withJSExtension.forEach(({ code, file }, index) =>
+    withJSExtension.forEach(({ code, file }) =>
         fs.writeFile(file, code, (err) => {
             if (err) {
                 console.error(err);
             }
-            showProgress({
-                index: index + 1,
-                numberOfFiles: withJSExtension.length,
-            });
         })
     );
 
     if (withJSExtension.length && showChanges) {
-        return;
         tabulateChanges(
             withJSExtension.map(({ replaceNodes, file }) => ({
                 file,
@@ -306,24 +321,23 @@ const postProcess = async ({
     }
 };
 
-const preProcess = ({
-    dir,
-}: Readonly<{
-    dir: Dir;
-}>) => getAllJavaScriptFiles(dir);
-
-const midProcess = async ({
+const findFiles = async ({
     files,
     include,
     extension,
 }: Readonly<{
     include: ReadonlyArray<string>;
-    extension: ParsedConfig['extension'];
+    extension: FinalizedConfig['extension'];
     files: ReturnType<typeof getAllJavaScriptFiles>;
 }>) => {
     // user may import files from `common` into `src`
     const allIncludedFiles: Files = files.concat(
-        include.flatMap(getAllJavaScriptFiles)
+        include.flatMap((dir) =>
+            getAllJavaScriptFiles({
+                dir,
+                extension,
+            })
+        )
     );
     return (
         await getAllJavaScriptCodes(files).reduce(
@@ -339,24 +353,15 @@ const midProcess = async ({
     );
 };
 
-type Argv = Parameters<
-    Parameters<ReturnType<typeof yargs>['command']>[0]['handler']
->[0];
-
-type ParsedConfig = Readonly<{
-    dir: string;
-    extension: 'js' | 'cjs' | 'mjs';
-    showChanges?: boolean;
-    include?: ReadonlyArray<string>;
-}>;
-
 const parseConfig = (argv: Argv): ParsedConfig => {
     const include = argv['include'];
 
     const parseExtension = (extension: unknown) => {
         switch (extension) {
+            case undefined: {
+                return undefined;
+            }
             case 'js':
-            case 'cjs':
             case 'mjs': {
                 return extension;
             }
@@ -387,20 +392,22 @@ const parseConfig = (argv: Argv): ParsedConfig => {
 const finalizedConfig = (config: ParsedConfig) =>
     ({
         ...config,
-        showChanges: config.showChanges ?? false,
         include: config.include ?? [],
+        extension: `.${config.extension ?? 'js'}`,
+        showChanges: config.showChanges ?? false,
     } as const);
 
 const tsAddJsExtension = async (parsedConfig: ParsedConfig) => {
     const config = finalizedConfig(parsedConfig);
-    return postProcess({
+    return updateFiles({
         showChanges: config.showChanges,
         shouldLog: process.env.TS_ADD_JS_EXTENSION_NODE_ENV !== 'test',
-        withJSExtension: await midProcess({
+        withJSExtension: await findFiles({
             include: config.include,
             extension: config.extension,
-            files: preProcess({
+            files: getAllJavaScriptFiles({
                 dir: config.dir,
+                extension: config.extension,
             }),
         }),
     })
@@ -451,7 +458,7 @@ const main = (args: Array<string>) => {
                     type: 'string',
                     demandOption: false,
                     describe:
-                        'Valid JavaScript file extension to append to each relative import/export, i.e. `mjs`, `cjs` or `js`',
+                        'Valid JavaScript file extension to append to each relative import/export, i.e. `mjs` or `js`',
                 },
             },
             handler: (argv) => {
@@ -471,12 +478,13 @@ const main = (args: Array<string>) => {
             },
         })
         .example(
-            "Assume javascript files are placed in folder called 'build'\nThe command will be as below\n$0 add --dir=dist --include=common dist build --showchanges=true",
-            `.
-            1. "dir" stands for the directory of that needs to add .js extension. (string)
-            2. "include" stands for the directory of files that is imported or included in 'dir' folder, exclusing the 'dir' specified. (array)
-            3. "showchanges" determines whether to show the changes made to import/export in table format. (boolean)
-            `
+            "Assume javascript files are placed in folder called 'build'\nThe command will be as below\n$0 add --dir=dist --include=common dist build --showchanges=true --extension=mjs",
+            [
+                '1. "dir" stands for the directory of that needs to add .js extension. (string)',
+                `2. "include" stands for the directory of files that is imported or included in 'dir' folder, exclusing the 'dir' specified. (array)`,
+                '3. "showchanges" determines whether to show the changes made to import/export in table format. (boolean)',
+                '4. "extension" search for JavaScript file that ends with that extension, and add that extension to each relative import/export',
+            ].join('\n')
         )
         .help()
         .strict().argv;

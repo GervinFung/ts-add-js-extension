@@ -14,13 +14,17 @@ const testTsAddJsExtension = () =>
                     .on('end', () => resolve(fetchData))
                     .on('error', reject);
             });
-        it('should be able to append ".js" extension for JavaScript file for all "sample.js" file', async () => {
-            const result = await tsAddJsExtension({
-                dir: 'test/output',
-                showChanges: true,
-            });
-            expect(result.type).toBe('done');
-        });
+        it.each(['js', 'mjs'] as const)(
+            'should be able to append "%s" extension for JavaScript file',
+            async (extension) => {
+                const result = await tsAddJsExtension({
+                    extension,
+                    dir: 'test/output',
+                    showChanges: true,
+                });
+                expect(result.type).toBe('done');
+            }
+        );
         it.each(
             Array.from({ length: 3 }, (_, index) => `${index + 1}.js`).concat([
                 'index.js',

@@ -25,7 +25,6 @@ const showProgress = ({
         }\n`,
     ].join('\t');
 
-    process.stdout.moveCursor(0, -1);
     process.stdout.clearScreenDown();
     process.stdout.write(line);
 };

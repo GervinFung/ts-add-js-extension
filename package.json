@@ -34,7 +34,7 @@
         "build-cjs": "tsc -p tsconfig.cjs.json",
         "build-dts": "tsc -p tsconfig.dts.json",
         "build": "rm -rf build && pnpm build-dts && pnpm build-cjs && pnpm build-mjs && node script/package.js",
-        "test-setup": "cd test && rm -rf output && mkdir output && cp -r sample/** output",
+        "test-setup": "cd test && rm -rf output && mkdir output && cp -r sample/** output && cd ../ && node script/test.js",
         "test": "pnpm test-setup && vitest"
     },
     "bugs": "https://github.com/Packer-Man/ts-add-js-extension/issues",
