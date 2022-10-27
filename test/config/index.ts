@@ -13,10 +13,12 @@ const testParseConfig = () => {
                     _: [],
                     $0: '',
                     ...options,
+                    extension: 'mjs',
                     showchanges: true,
                 })
             ).toStrictEqual({
                 ...options,
+                extension: 'mjs',
                 showChanges: true,
             });
         });
@@ -33,6 +35,7 @@ const testParseConfig = () => {
             ).toStrictEqual({
                 ...options,
                 include: undefined,
+                extension: undefined,
                 showChanges: undefined,
             });
         });
