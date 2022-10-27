@@ -1,4 +1,5 @@
 import Progress from '../../src/progress';
+import { describe, it, expect } from 'vitest';
 
 const testProgress = () =>
     describe('progress', () => {
