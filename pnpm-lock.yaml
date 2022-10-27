@@ -7,7 +7,6 @@ specifiers:
   '@typescript-eslint/parser': ^5.40.0
   '@typescript-eslint/typescript-estree': ^5.40.0
   cases-of-test: ^0.0.0
-  console-table-printer: ^2.11.1
   eslint: ^8.25.0
   prettier: ^2.7.1
   typescript: ^4.8.4
@@ -16,7 +15,6 @@ specifiers:
 
 dependencies:
   '@typescript-eslint/typescript-estree': 5.40.1_typescript@4.8.4
-  console-table-printer: 2.11.1
   yargs: 17.6.0
 
 devDependencies:
@@ -431,12 +429,6 @@ packages:
   /concat-map/0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
     dev: true
-
-  /console-table-printer/2.11.1:
-    resolution: {integrity: sha512-8LfFpbF/BczoxPwo2oltto5bph8bJkGOATXsg3E9ddMJOGnWJciKHldx2zDj5XIBflaKzPfVCjOTl6tMh7lErg==}
-    dependencies:
-      simple-wcswidth: 1.0.1
-    dev: false
 
   /cross-spawn/7.0.3:
     resolution: {integrity: sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w==}
@@ -1291,10 +1283,6 @@ packages:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
     dev: true
-
-  /simple-wcswidth/1.0.1:
-    resolution: {integrity: sha512-xMO/8eNREtaROt7tJvWJqHBDTMFN4eiQ5I4JRMuilwfnFcV5W9u7RUkueNkdw0jPqGMX36iCywelS5yilTuOxg==}
-    dev: false
 
   /slash/3.0.0:
     resolution: {integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==}

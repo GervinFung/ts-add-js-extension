@@ -1,3 +1,7 @@
+## 1.3.0 (27 Oct 2022)
+
+-   (Feat) Remove `console-table-printer` and replace it with manual progress log
+
 ## 1.2.6 (27 Oct 2022)
 
 -   (Fix) Optionally target `mjs` or `js` file, defaults to `js` file if parameters are not pass into
