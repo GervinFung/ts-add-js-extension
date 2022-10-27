@@ -1,3 +1,7 @@
+## 1.2.6 (27 Oct 2022)
+
+-   (Fix) Optionally target `mjs` or `js` file, defaults to `js` file if parameters are not pass into
+
 ## 1.2.5 (25 Oct 2022)
 
 -   (Chore) Remove unnecessary log
