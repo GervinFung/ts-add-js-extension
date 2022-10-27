@@ -26,9 +26,12 @@ const testTsAddJsExtension = () =>
             }
         );
         it.each(
-            Array.from({ length: 3 }, (_, index) => `${index + 1}.js`).concat([
-                'index.js',
+            Array.from({ length: 3 }, (_, index) => [
+                `${index + 1}.js`,
+                `${index + 1}.mjs`,
             ])
+                .concat(['index.js', 'index.mjs'])
+                .flat()
         )(
             'should read the code and ensure each import/export statemnt is properly formed for "%s"',
             async (file) => {

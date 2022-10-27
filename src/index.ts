@@ -2,8 +2,8 @@ import * as Eslint from '@typescript-eslint/typescript-estree';
 import fs from 'fs';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
-import { Table } from 'console-table-printer';
 import path from 'path';
+import Progress from './progress';
 
 type Node = Readonly<{
     file: string;
@@ -245,80 +245,61 @@ const importExportWithJSExtension = ({
           ];
 };
 
-const tabulateChanges = (
-    changes: ReadonlyArray<{
-        replaceNodes: ReplaceNodes;
-        file: string;
-    }>
-) => {
-    const table = new Table({
-        columns: [
-            { name: 'index', alignment: 'left' },
-            { name: 'file', alignment: 'left' },
-            { name: 'before', alignment: 'left' },
-            { name: 'after', alignment: 'left' },
-        ],
-    });
-    table.table.title = 'The Output of ts-add-js-extension';
-    changes.forEach(({ replaceNodes, file }, changeIndex) =>
-        replaceNodes.forEach(({ before, after }, index) => {
-            const currentIndex = index + 1;
-            table.addRow(
-                {
-                    file,
-                    before,
-                    after,
-                    index:
-                        changes
-                            .map((change, index) =>
-                                index >= changeIndex
-                                    ? 0
-                                    : change.replaceNodes.length
-                            )
-                            .reduce((prev, curr) => prev + curr) + currentIndex,
-                },
-                { color: 'cyan' }
-            );
-        })
-    );
-    table.printTable();
-};
-
 const updateFiles = async ({
     shouldLog,
+    extension,
     showChanges,
     withJSExtension,
 }: Readonly<{
     shouldLog: boolean;
     showChanges: boolean;
+    extension: FinalizedConfig['extension'];
     withJSExtension: ReturnType<typeof importExportWithJSExtension>;
 }>) => {
     if (withJSExtension.length && shouldLog) {
         console.log('Adding .js extension to each relative import/export\n');
     }
 
-    withJSExtension.forEach(({ code, file }) =>
-        fs.writeFile(file, code, (err) => {
-            if (err) {
-                console.error(err);
-            }
-        })
-    );
+    const progress =
+        withJSExtension.length && !showChanges
+            ? undefined
+            : Progress.fromNumberOfFiles(withJSExtension.length);
 
-    if (withJSExtension.length && showChanges) {
-        tabulateChanges(
-            withJSExtension.map(({ replaceNodes, file }) => ({
-                file,
-                replaceNodes: replaceNodes.flat(),
-            }))
-        );
-    }
+    const errors = (
+        await Promise.all(
+            withJSExtension.flatMap(
+                ({ code, file }) =>
+                    new Promise<
+                        | undefined
+                        | Readonly<{
+                              file: string;
+                              error: NodeJS.ErrnoException;
+                          }>
+                    >((resolve) =>
+                        fs.writeFile(file, code, (error) => {
+                            progress?.incrementNumberOfFilesRan();
+                            if (!error) {
+                                progress?.show(file);
+                                resolve(undefined);
+                            } else {
+                                resolve({
+                                    file,
+                                    error,
+                                });
+                            }
+                        })
+                    )
+            )
+        )
+    ).flatMap((element) => (!element ? [] : [element]));
 
     if (withJSExtension.length && shouldLog) {
         console.log(
-            'Completed adding .js extension to each relative import/export statement'
+            'Completed adding .js extension to each relative import/export statement\n'
         );
     }
+
+    progress?.end({ errors, extension });
 };
 
 const findFiles = async ({
@@ -339,6 +320,7 @@ const findFiles = async ({
             })
         )
     );
+
     return (
         await getAllJavaScriptCodes(files).reduce(
             async (prev, curr) => (await prev).concat(await curr),
@@ -394,12 +376,13 @@ const finalizedConfig = (config: ParsedConfig) =>
         ...config,
         include: config.include ?? [],
         extension: `.${config.extension ?? 'js'}`,
-        showChanges: config.showChanges ?? false,
+        showChanges: config.showChanges ?? true,
     } as const);
 
 const tsAddJsExtension = async (parsedConfig: ParsedConfig) => {
     const config = finalizedConfig(parsedConfig);
     return updateFiles({
+        extension: config.extension,
         showChanges: config.showChanges,
         shouldLog: process.env.TS_ADD_JS_EXTENSION_NODE_ENV !== 'test',
         withJSExtension: await findFiles({
@@ -465,16 +448,12 @@ const main = (args: Array<string>) => {
                 tsAddJsExtension(parseConfig(argv))
                     .then((result) => {
                         switch (result.type) {
-                            case 'error':
-                                console.dir(
-                                    {
-                                        error: result.error,
-                                    },
-                                    { depth: null }
-                                );
+                            case 'error': {
+                                console.error(result.error);
+                            }
                         }
                     })
-                    .catch((error) => console.dir({ error }, { depth: null }));
+                    .catch(console.error);
             },
         })
         .example(
