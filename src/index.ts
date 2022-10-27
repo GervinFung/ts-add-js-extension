@@ -260,10 +260,9 @@ const updateFiles = async ({
         console.log('Adding .js extension to each relative import/export\n');
     }
 
-    const progress =
-        withJSExtension.length && !showChanges
-            ? undefined
-            : Progress.fromNumberOfFiles(withJSExtension.length);
+    const progress = !(withJSExtension.length && showChanges)
+        ? undefined
+        : Progress.fromNumberOfFiles(withJSExtension.length);
 
     const errors = (
         await Promise.all(
