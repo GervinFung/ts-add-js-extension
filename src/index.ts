@@ -246,20 +246,14 @@ const importExportWithJSExtension = ({
 };
 
 const updateFiles = async ({
-    shouldLog,
     extension,
     showChanges,
     withJSExtension,
 }: Readonly<{
-    shouldLog: boolean;
     showChanges: boolean;
     extension: FinalizedConfig['extension'];
     withJSExtension: ReturnType<typeof importExportWithJSExtension>;
 }>) => {
-    if (withJSExtension.length && shouldLog) {
-        console.log('Adding .js extension to each relative import/export\n');
-    }
-
     const progress = !(withJSExtension.length && showChanges)
         ? undefined
         : Progress.fromNumberOfFiles(withJSExtension.length);
@@ -291,12 +285,6 @@ const updateFiles = async ({
             )
         )
     ).flatMap((element) => (!element ? [] : [element]));
-
-    if (withJSExtension.length && shouldLog) {
-        console.log(
-            'Completed adding .js extension to each relative import/export statement\n'
-        );
-    }
 
     progress?.end({ errors, extension });
 };
@@ -383,7 +371,6 @@ const tsAddJsExtension = async (parsedConfig: ParsedConfig) => {
     return updateFiles({
         extension: config.extension,
         showChanges: config.showChanges,
-        shouldLog: process.env.TS_ADD_JS_EXTENSION_NODE_ENV !== 'test',
         withJSExtension: await findFiles({
             include: config.include,
             extension: config.extension,

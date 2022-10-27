@@ -1,3 +1,7 @@
+## 1.3.2 (27 Oct 2022)
+
+-   (Chore) Remove useless log
+
 ## 1.3.1 (27 Oct 2022)
 
 -   (Fix) Create `Progress` instance when there is at least one file to change
