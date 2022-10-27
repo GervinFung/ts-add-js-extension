@@ -5,8 +5,5 @@ export default defineConfig({
         // ref: https://vitest.dev/config/
         watch: false,
         include: ['test/index.ts'],
-        env: {
-            TS_ADD_JS_EXTENSION_NODE_ENV: 'test',
-        },
     },
 });
