@@ -1,3 +1,7 @@
+## 1.3.1 (27 Oct 2022)
+
+-   (Fix) Create `Progress` instance when there is at least one file to change
+
 ## 1.3.0 (27 Oct 2022)
 
 -   (Feat) Remove `console-table-printer` and replace it with manual progress log
