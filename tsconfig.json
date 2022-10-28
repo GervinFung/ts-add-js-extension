@@ -1,7 +1,5 @@
 {
     "compilerOptions": {
-        "target": "ESNEXT",
-        "module": "ESNEXT",
         "allowJs": false,
         "checkJs": false,
         "strict": true,
@@ -16,11 +14,9 @@
         "resolveJsonModule": true,
         "noUncheckedIndexedAccess": true,
         "pretty": true,
-        "outDir": "build/dts",
-        "preserveWatchOutput": true,
+        "emitDeclarationOnly": true,
         "declaration": true,
-        "declarationMap": true,
-        "sourceMap": true
+        "outDir": "build/dts"
     },
     "include": ["src", "test"],
     "exclude": ["node_modules", "src/progress.ts"]
