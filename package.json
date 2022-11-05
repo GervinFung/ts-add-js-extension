@@ -43,6 +43,7 @@
         "url": "https://github.com/Packer-Man/ts-add-js-extension"
     },
     "devDependencies": {
+        "@poolofdeath20/eslint-config": "^0.0.1",
         "@types/node": "^16.11.10",
         "@types/yargs": "^17.0.13",
         "@typescript-eslint/eslint-plugin": "^5.40.0",
