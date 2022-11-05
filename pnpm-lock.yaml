@@ -1,6 +1,7 @@
 lockfileVersion: 5.4
 
 specifiers:
+  '@poolofdeath20/eslint-config': ^0.0.1
   '@types/node': ^16.11.10
   '@types/yargs': ^17.0.13
   '@typescript-eslint/eslint-plugin': ^5.40.0
@@ -19,13 +20,14 @@ dependencies:
   yargs: 17.6.0
 
 devDependencies:
+  '@poolofdeath20/eslint-config': 0.0.1_ipqvmdbmabczrxmvaoxxnbr664
   '@types/node': 16.18.0
   '@types/yargs': 17.0.13
   '@typescript-eslint/eslint-plugin': 5.40.1_c4zyna56jjjrggqkyejnaxjxfu
   '@typescript-eslint/parser': 5.40.1_wyqvi574yv7oiwfeinomdzmc3m
   cases-of-test: 0.0.0
   eslint: 8.26.0
-  node-package-helper: github.com/Packer-Man/node-package-helper/a59a22b11474c4c9999784adcbda5f56a714bb3f
+  node-package-helper: github.com/Packer-Man/node-package-helper/752c1f9a33c6a02a4d0cb4b9cd7e344e484c78b7
   prettier: 2.7.1
   typescript: 4.8.4
   vitest: 0.24.3
@@ -104,6 +106,21 @@ packages:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.13.0
+
+  /@poolofdeath20/eslint-config/0.0.1_ipqvmdbmabczrxmvaoxxnbr664:
+    resolution: {integrity: sha512-d/3M2sX5aDmcxEz6z894VMXEkLbJ36QTEJiLdFI3icM9XVmj0iqfr4pZKDFJj143qEFtLxU/pnr/P9yhbLcLiA==}
+    peerDependencies:
+      '@typescript-eslint/eslint-plugin': '*'
+      '@typescript-eslint/parser': '*'
+      eslint: '>=8'
+      eslint-plugin-jsx-a11y: '*'
+      eslint-plugin-react: '*'
+      eslint-plugin-styled-components-a11y: '*'
+    dependencies:
+      '@typescript-eslint/eslint-plugin': 5.40.1_c4zyna56jjjrggqkyejnaxjxfu
+      '@typescript-eslint/parser': 5.40.1_wyqvi574yv7oiwfeinomdzmc3m
+      eslint: 8.26.0
+    dev: true
 
   /@types/chai-subset/1.3.3:
     resolution: {integrity: sha512-frBecisrNGz+F4T6bcc+NLeolfiojh5FxW2klu669+8BARtyQv2C/GkNW6FUodVe4BroGMP/wER/YDGc7rEllw==}
@@ -1561,10 +1578,10 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  github.com/Packer-Man/node-package-helper/a59a22b11474c4c9999784adcbda5f56a714bb3f:
-    resolution: {tarball: https://codeload.github.com/Packer-Man/node-package-helper/tar.gz/a59a22b11474c4c9999784adcbda5f56a714bb3f}
+  github.com/Packer-Man/node-package-helper/752c1f9a33c6a02a4d0cb4b9cd7e344e484c78b7:
+    resolution: {tarball: https://codeload.github.com/Packer-Man/node-package-helper/tar.gz/752c1f9a33c6a02a4d0cb4b9cd7e344e484c78b7}
     name: node-package-helper
-    version: 0.0.2
+    version: 0.1.0
     hasBin: true
     requiresBuild: true
     dependencies:
