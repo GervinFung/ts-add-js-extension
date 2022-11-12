@@ -1,6 +1,7 @@
+import file from '../../src/read-write';
+import fs from 'fs';
 import { tsAddJsExtension } from '../../src';
 import { describe, it, expect } from 'vitest';
-import fs from 'fs';
 
 const testTsAddJsExtension = () =>
     describe('ts add js extension', () => {
@@ -18,9 +19,12 @@ const testTsAddJsExtension = () =>
             'should be able to append "%s" extension for JavaScript file',
             async (extension) => {
                 const result = await tsAddJsExtension({
-                    extension,
-                    dir: 'test/output',
-                    showChanges: true,
+                    createFileInstance: file,
+                    parsedConfigFunction: () => ({
+                        extension,
+                        dir: 'test/output',
+                        showChanges: true,
+                    }),
                 });
                 expect(result.type).toBe('done');
             }
