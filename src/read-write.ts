@@ -1,14 +1,15 @@
 import fs from 'fs';
 import path from 'path';
-import * as Eslint from '@typescript-eslint/typescript-estree';
+import * as Estree from '@typescript-eslint/typescript-estree';
 import { FinalizedConfig } from './config';
 import traverseAndUpdateFileWithJSExtension from './traverse-and-update';
 import Progress from './progress';
+import { extensions } from './const';
 
 type Node = Readonly<{
     file: string;
     code: string;
-    ast: Eslint.AST<
+    ast: Estree.AST<
         Readonly<{
             loc: true;
         }>
@@ -24,19 +25,18 @@ type Files = ReadonlyArray<string>;
 
 const getAllJavaScriptFiles = ({
     dir,
-    extension,
 }: Readonly<{
     dir: string;
-    extension: FinalizedConfig['extension'];
 }>): Files =>
     fs.readdirSync(dir).flatMap((file) => {
         const filePath = `${dir}/${file}`;
-        return fs.statSync(filePath).isDirectory()
-            ? getAllJavaScriptFiles({
-                  extension,
-                  dir: filePath,
-              })
-            : !(path.extname(filePath) === extension)
+        if (fs.statSync(filePath).isDirectory()) {
+            return getAllJavaScriptFiles({
+                dir: filePath,
+            });
+        }
+        const extension = path.extname(filePath);
+        return !(extensions.mjs === extension || extensions.js === extension)
             ? []
             : [filePath];
     });
@@ -56,7 +56,7 @@ const getAllJavaScriptCodes = (files: Files): ReadonlyArray<Promise<Node>> =>
         return {
             file,
             code,
-            ast: Eslint.parse(code, { loc: true }),
+            ast: Estree.parse(code, { loc: true }),
         };
     });
 
@@ -64,17 +64,14 @@ const file = () => ({
     findMany: async ({
         dir,
         include,
-        extension,
     }: Readonly<{
         dir: FinalizedConfig['dir'];
         include: ReadonlyArray<string>;
-        extension: FinalizedConfig['extension'];
     }>) => {
         // user may import files from `common` into `src`
         const files: Files = include.concat(dir).flatMap((dir) =>
             getAllJavaScriptFiles({
                 dir,
-                extension,
             })
         );
 
@@ -87,17 +84,14 @@ const file = () => ({
             traverseAndUpdateFileWithJSExtension({
                 node,
                 files,
-                extension,
             })
         );
     },
     writeMany: async ({
-        extension,
         showChanges,
         withJSExtension,
     }: Readonly<{
         showChanges: boolean;
-        extension: FinalizedConfig['extension'];
         withJSExtension: ReturnType<
             typeof traverseAndUpdateFileWithJSExtension
         >;
@@ -134,7 +128,7 @@ const file = () => ({
             )
         ).flatMap((element) => (!element ? [] : [element]));
 
-        progress?.end({ errors, extension });
+        progress?.end({ errors });
     },
 });
 

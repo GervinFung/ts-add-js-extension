@@ -76,11 +76,9 @@ export default class Progress {
             .join(', ');
     };
 
-    readonly end = <T extends string>({
+    readonly end = ({
         errors,
-        extension,
     }: Readonly<{
-        extension: T;
         errors: ReadonlyArray<
             Readonly<{
                 file: string;
@@ -101,7 +99,7 @@ export default class Progress {
             console.error(
                 `The following file${
                     errors.length === 1 ? '' : 's'
-                } failed to be add JavaScript file extension of ${extension}`
+                } failed to add either .js or .mjs file extension`
             );
             console.error(
                 Array.from(errors)

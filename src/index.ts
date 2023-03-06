@@ -4,22 +4,18 @@ import { hideBin } from 'yargs/helpers';
 import { finalizedConfig, parseConfig, ParsedConfig } from './config';
 
 const tsAddJsExtension = async ({
-    createFileInstance,
     parsedConfigFunction,
 }: Readonly<{
-    createFileInstance: () => ReturnType<typeof file>;
     parsedConfigFunction: () => ParsedConfig;
 }>) => {
     const config = finalizedConfig(parsedConfigFunction());
-    const fileInstance = createFileInstance();
+    const fileInstance = file();
     return fileInstance
         .writeMany({
-            extension: config.extension,
             showChanges: config.showChanges,
             withJSExtension: await fileInstance.findMany({
                 dir: config.dir,
                 include: config.include,
-                extension: config.extension,
             }),
         })
         .then(
@@ -64,17 +60,9 @@ const main = (args: Array<string>) => {
                     describe:
                         'Show changes made to import/export declaration in table format',
                 },
-                extension: {
-                    default: 'js',
-                    type: 'string',
-                    demandOption: false,
-                    describe:
-                        'Valid JavaScript file extension to append to each relative import/export, i.e. `mjs` or `js`',
-                },
             },
             handler: (argv) => {
                 tsAddJsExtension({
-                    createFileInstance: file,
                     parsedConfigFunction: () => parseConfig(argv),
                 })
                     .then((result) => {
@@ -88,12 +76,11 @@ const main = (args: Array<string>) => {
             },
         })
         .example(
-            "Assume javascript files are placed in folder called 'build'\nThe command will be as below\n$0 add --dir=dist --include=common dist build --showchanges=true --extension=mjs",
+            "Assume javascript files are placed in folder called 'build'\nThe command will be as below\n$0 add --dir=dist --include=common dist build --showchanges=true",
             [
                 '1. "dir" stands for the directory of that needs to add .js extension. (string)',
                 `2. "include" stands for the directory of files that is imported or included in 'dir' folder, exclusing the 'dir' specified. (array)`,
                 '3. "showchanges" determines whether to show the changes made to import/export in table format. (boolean)',
-                '4. "extension" search for JavaScript file that ends with that extension, and add that extension to each relative import/export',
             ].join('\n')
         )
         .help()
