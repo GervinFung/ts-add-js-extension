@@ -1,4 +1,4 @@
-import { parseConfig, tsAddJsExtension } from '../../src';
+import { parseConfig } from '../../src';
 import { describe, it, expect } from 'vitest';
 
 describe('Config parsing', () => {
@@ -7,9 +7,6 @@ describe('Config parsing', () => {
             dir: 'dir',
             include: ['hi'],
         };
-tsAddJsExtension({
-    'createFileInstance'
-})
         expect(
             parseConfig({
                 _: [],
