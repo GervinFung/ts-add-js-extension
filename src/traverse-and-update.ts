@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import { FinalizedConfig } from './config';
 import { Node, Files, WriteCode } from './read-write';
-import * as Eslint from '@typescript-eslint/typescript-estree';
+import * as Estree from '@typescript-eslint/typescript-estree';
+import { extensions } from './const';
 
 type AddJSNode = Readonly<{
     before: string;
@@ -19,50 +19,96 @@ const formProperFilePath = ({
     filePath: string;
 }>) => filePath.split(delimiter).filter(Boolean).join(delimiter);
 
+const checkJavaScriptFileExistByAppend = ({
+    filePath,
+}: Readonly<{
+    filePath: string;
+}>) => {
+    const { js, mjs } = extensions;
+    const jsFile = filePath.concat(js);
+    if (fs.existsSync(jsFile)) {
+        return js;
+    }
+    const mjsFile = filePath.concat(mjs);
+    if (fs.existsSync(mjsFile)) {
+        return mjs;
+    }
+    return false;
+};
+
+const isDirectory = (filePath: string) => {
+    try {
+        return fs.lstatSync(filePath).isDirectory();
+    } catch (error) {
+        return false;
+    }
+};
+
 const addJSExtension = ({
     filePath,
-    extension,
     delimiter,
     importPath,
 }: Readonly<{
     filePath: string;
     importPath: string;
     delimiter: string;
-    extension: FinalizedConfig['extension'];
 }>): Readonly<
     | {
-          type: 'skip';
+          procedure: 'skip';
       }
     | {
-          type: 'proceed';
+          procedure: 'proceed';
           importPath: string;
-          filePathForFileImported: string;
+          filePathImported: string;
       }
 > => {
-    const isDirectory =
-        fs.existsSync(filePath) && fs.lstatSync(filePath).isDirectory();
-    const isJavaScript = !isDirectory && path.extname(filePath) === extension;
+    const { js, mjs } = extensions;
+
+    const jsExtension = path.extname(filePath);
+    const isJavaScript = jsExtension === js || jsExtension === mjs;
     if (isJavaScript) {
         return {
-            type: 'skip',
+            procedure: 'skip',
         };
     }
-    const defaultFile = `${!isDirectory ? '' : '/index'}${extension}`;
+    if (!isDirectory(filePath)) {
+        const extension = checkJavaScriptFileExistByAppend({
+            filePath: `${filePath}`,
+        });
+        if (!extension) {
+            return {
+                procedure: 'skip',
+            };
+        }
+        return {
+            procedure: 'proceed',
+            importPath: formProperFilePath({
+                delimiter,
+                filePath: `${importPath}${extension}`,
+            }),
+            filePathImported: formProperFilePath({
+                delimiter,
+                filePath: `${filePath}${extension}`,
+            }),
+        };
+    }
+    const extension = checkJavaScriptFileExistByAppend({
+        filePath: `${filePath}/index`,
+    });
     return {
-        type: 'proceed',
+        procedure: 'proceed',
         importPath: formProperFilePath({
             delimiter,
-            filePath: `${importPath}${defaultFile}`,
+            filePath: `${importPath}/index${extension}`,
         }),
-        filePathForFileImported: formProperFilePath({
+        filePathImported: formProperFilePath({
             delimiter,
-            filePath: `${filePath}${defaultFile}`,
+            filePath: `${filePath}/index${extension}`,
         }),
     };
 };
 
 const traverseAndUpdateFileWithJSExtension = ({
-    extension,
     files,
     node: {
         code,
@@ -72,7 +118,6 @@ const traverseAndUpdateFileWithJSExtension = ({
 }: Readonly<{
     node: Node;
     files: Files;
-    extension: FinalizedConfig['extension'];
 }>): ReadonlyArray<
     WriteCode &
         Readonly<{
@@ -81,7 +126,7 @@ const traverseAndUpdateFileWithJSExtension = ({
 > => {
     const codeWithoutCarriageReturn = code.replace(/\r/gm, '');
     const splitted = codeWithoutCarriageReturn.split('\n');
-    const statementType = Eslint.AST_NODE_TYPES;
+    const statementType = Estree.AST_NODE_TYPES;
 
     const replaceNodes: ReplaceNodes = body.flatMap((statement) => {
         const { type } = statement;
@@ -115,22 +160,20 @@ const traverseAndUpdateFileWithJSExtension = ({
                         return [];
                     } else {
                         const result = addJSExtension({
-                            extension,
                             delimiter,
                             importPath: value,
                             filePath: path.join(file, '..', value),
                         });
 
-                        switch (result.type) {
+                        switch (result.procedure) {
                             case 'skip': {
                                 return [];
                             }
                             case 'proceed': {
                                 // if file name not included in list of js file read
-                                const { filePathForFileImported, importPath } =
-                                    result;
+                                const { filePathImported, importPath } = result;
                                 const fileFound = files.find((file) =>
-                                    file.endsWith(filePathForFileImported)
+                                    file.endsWith(filePathImported)
                                 );
                                 if (!fileFound) {
                                     return [];

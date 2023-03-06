@@ -1,0 +1,52 @@
+// Vitest Snapshot v1
+
+exports[`ts add js extension > should read the code and ensure each import/export statemnt is properly formed for "1.js" 1`] = `
+"import * as fs from 'fs';
+import { fs } from './2.js';
+import * as sample2 from './2.js';
+import * as sampleExport2 from '../output/1.js';
+import * as index from './index.js';
+import * as index from './index.js';
+export { index } from './index.js';
+export * as index from './index.js';
+export { default as x } from './index.js';
+export { default as x } from './index.js';
+"
+`;
+
+exports[`ts add js extension > should read the code and ensure each import/export statemnt is properly formed for "2.js" 1`] = `
+"import { sample1 } from './1.js';
+import './c.css';
+export * from './1.js';
+export * from '../output/1.js';
+"
+`;
+
+exports[`ts add js extension > should read the code and ensure each import/export statemnt is properly formed for "3.js" 1`] = `
+"import * as sampleExport2 from './2.js';
+export * from './1.js';
+export * as ays from './1.js';
+"
+`;
+
+exports[`ts add js extension > should read the code and ensure each import/export statemnt is properly formed for "4.mjs" 1`] = `
+"import * as sampleExport1 from './1.js';
+import * as sampleExport2 from './2.js';
+export * from './1.js';
+export * as ays from './1.js';
+export * as abc from './6.mjs';
+"
+`;
+
+exports[`ts add js extension > should read the code and ensure each import/export statemnt is properly formed for "5.js" 1`] = `
+"import * as sampleExport3 from './3.js';
+import * as sampleExport4 from './4.mjs';
+"
+`;
+
+exports[`ts add js extension > should read the code and ensure each import/export statemnt is properly formed for "6.mjs" 1`] = `""`;
+
+exports[`ts add js extension > should read the code and ensure each import/export statemnt is properly formed for "index.js" 1`] = `
+"console.log('hi');
+"
+`;

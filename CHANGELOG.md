@@ -1,3 +1,7 @@
+## 1.3.3 (6 Mar 2023)
+
+-   (Fix) Auto detect whether a file imported/exported is with `.js` or `.mjs` extension, so there is no need to specify what extension to be added
+
 ## 1.3.2 (27 Oct 2022)
 
 -   (Chore) Remove useless log
