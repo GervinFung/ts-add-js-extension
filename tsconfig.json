@@ -8,15 +8,14 @@
         "noUnusedParameters": true,
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true,
-        "moduleResolution": "node",
-        "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true,
         "noUncheckedIndexedAccess": true,
         "pretty": true,
-        "emitDeclarationOnly": true,
-        "declaration": true,
-        "outDir": "build/dts"
+        "verbatimModuleSyntax": true,
+        "noEmit": true,
+        "module": "ESNext",
+        "moduleResolution": "bundler"
     },
     "include": ["src", "test"],
     "exclude": ["node_modules", "src/progress.ts"]

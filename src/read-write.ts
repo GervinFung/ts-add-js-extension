@@ -1,6 +1,6 @@
 import fs from 'fs';
 import * as Estree from '@typescript-eslint/typescript-estree';
-import { FinalizedConfig } from './config';
+import type { FinalizedConfig } from './config';
 import traverseAndUpdateFileWithJSExtension from './traverse-and-update';
 import Progress from './progress';
 import { extensionsUtil } from './const';
