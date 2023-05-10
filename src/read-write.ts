@@ -1,10 +1,9 @@
 import fs from 'fs';
-import path from 'path';
 import * as Estree from '@typescript-eslint/typescript-estree';
 import { FinalizedConfig } from './config';
 import traverseAndUpdateFileWithJSExtension from './traverse-and-update';
 import Progress from './progress';
-import { extensions } from './const';
+import { extensionsUtil } from './const';
 
 type Node = Readonly<{
     file: string;
@@ -23,7 +22,7 @@ type WriteCode = Readonly<{
 
 type Files = ReadonlyArray<string>;
 
-const getAllJavaScriptFiles = ({
+const getAllJSAndDTSFiles = ({
     dir,
 }: Readonly<{
     dir: string;
@@ -31,14 +30,11 @@ const getAllJavaScriptFiles = ({
     fs.readdirSync(dir).flatMap((file) => {
         const filePath = `${dir}/${file}`;
         if (fs.statSync(filePath).isDirectory()) {
-            return getAllJavaScriptFiles({
+            return getAllJSAndDTSFiles({
                 dir: filePath,
             });
         }
-        const extension = path.extname(filePath);
-        return !(extensions.mjs === extension || extensions.js === extension)
-            ? []
-            : [filePath];
+        return !extensionsUtil.matchAny(filePath) ? [] : [filePath];
     });
 
 const readCode = (files: string): Promise<string> =>
@@ -50,7 +46,7 @@ const readCode = (files: string): Promise<string> =>
             .on('error', reject);
     });
 
-const getAllJavaScriptCodes = (files: Files): ReadonlyArray<Promise<Node>> =>
+const getAllJSAndDTSCodes = (files: Files): ReadonlyArray<Promise<Node>> =>
     files.map(async (file) => {
         const code = await readCode(file);
         return {
@@ -70,13 +66,13 @@ const file = () => ({
     }>) => {
         // user may import files from `common` into `src`
         const files: Files = include.concat(dir).flatMap((dir) =>
-            getAllJavaScriptFiles({
+            getAllJSAndDTSFiles({
                 dir,
             })
         );
 
         return (
-            await getAllJavaScriptCodes(files).reduce(
+            await getAllJSAndDTSCodes(files).reduce(
                 async (prev, curr) => (await prev).concat(await curr),
                 Promise.resolve([] as ReadonlyArray<Node>)
             )

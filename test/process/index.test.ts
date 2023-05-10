@@ -1,7 +1,6 @@
 import fs from 'fs';
 import child from 'child_process';
 import { describe, it, expect, beforeAll } from 'vitest';
-import file from '../../src/read-write';
 import { tsAddJsExtension } from '../../src';
 
 describe('ts add js extension', () => {
@@ -23,20 +22,28 @@ describe('ts add js extension', () => {
     });
     it('should be able to append .js/.mjs extension for JavaScript file', async () => {
         const result = await tsAddJsExtension({
-            createFileInstance: file,
             parsedConfigFunction: () => ({
-                dir: 'test/output',
+                dir: 'test/output/js',
+            }),
+        });
+        expect(result.type).toBe('done');
+    });
+    it('should be able to append .js/.mjs extension for Type Definition file', async () => {
+        const result = await tsAddJsExtension({
+            parsedConfigFunction: () => ({
+                dir: 'test/output/ts',
             }),
         });
         expect(result.type).toBe('done');
     });
     it.each(
         Array.from({ length: 6 }, (_, index) =>
-            [`${index + 1}.js`, `${index + 1}.mjs`].filter((file) =>
+            [`js/${index + 1}.js`, `js/${index + 1}.mjs`].filter((file) =>
                 fs.existsSync(`${output}/${file}`)
             )
         )
-            .concat(['index.js'])
+            .concat(['js/index.js'])
+            .concat(['ts/dist/index.d.ts'])
             .flat()
     )(
         'should read the code and ensure each import/export statemnt is properly formed for "%s"',

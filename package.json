@@ -37,10 +37,10 @@
         "test-setup": "cd test && rm -rf output && mkdir output && cp -r sample/** output",
         "test": "vitest"
     },
-    "bugs": "https://github.com/Packer-Man/ts-add-js-extension/issues",
+    "bugs": "https://github.com/GervinFung/ts-add-js-extension/issues",
     "repository": {
         "type": "git",
-        "url": "https://github.com/Packer-Man/ts-add-js-extension"
+        "url": "https://github.com/GervinFung/ts-add-js-extension"
     },
     "devDependencies": {
         "@poolofdeath20/eslint-config": "^0.0.1",
@@ -50,7 +50,7 @@
         "@typescript-eslint/parser": "^5.40.0",
         "eslint": "^8.25.0",
         "graphql": "^14.7.0",
-        "node-package-helper": "github:Packer-Man/node-package-helper",
+        "node-package-helper": "github:GervinFung/node-package-helper",
         "prettier": "^2.7.1",
         "typescript": "^4.8.4",
         "vitest": "^0.24.3"
