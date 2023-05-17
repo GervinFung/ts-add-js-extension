@@ -1,7 +1,7 @@
 import yargs from 'yargs';
 import file from './read-write';
 import { hideBin } from 'yargs/helpers';
-import { finalizedConfig, parseConfig, ParsedConfig } from './config';
+import { finalizedConfig, parseConfig, type ParsedConfig } from './config';
 
 const tsAddJsExtension = async ({
     parsedConfigFunction,

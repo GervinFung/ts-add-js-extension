@@ -1,9 +1,10 @@
 {
-    "extends": "./tsconfig.dts.json",
+    "extends": "./tsconfig.json",
     "compilerOptions": {
-        "emitDeclarationOnly": false,
-        "declaration": false,
+        "noEmit": false,
+        "declaration": true,
         "declarationMap": false,
         "sourceMap": true
-    }
+    },
+    "include": ["src"]
 }

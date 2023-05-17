@@ -5,15 +5,14 @@
     "license": "MIT",
     "main": "build/cjs/index.js",
     "module": "build/mjs/index.js",
-    "types": "build/dts/index.d.ts",
+    "types": "build/cjs/index.d.ts",
     "react-native": "build/mjs/index.js",
     "exports": {
         "./package.json": "./package.json",
         ".": {
             "require": "./build/cjs/index.js",
             "import": "./build/mjs/index.js",
-            "default": "./build/mjs/index.js",
-            "types": "./build/dts/index.d.ts"
+            "default": "./build/mjs/index.js"
         }
     },
     "bin": {
@@ -31,32 +30,31 @@
         "format": "prettier --ignore-path .gitignore --write src/ test/",
         "format-check": "prettier --ignore-path .gitignore --check src/ test/",
         "build-cjs": "tsc -p tsconfig.cjs.json",
-        "build-dts": "tsc -p tsconfig.dts.json",
         "build-mjs": "tsc -p tsconfig.mjs.json && ./bin/ts-add-js-extension.js add --dir=build/mjs",
-        "build": "rm -rf build && pnpm build-dts && pnpm build-cjs && pnpm build-mjs && node-package-helper",
+        "build": "rm -rf build && pnpm build-cjs && pnpm build-mjs && cp node_modules/node-package-helper/test/dummy/cjs/package.json build/cjs/package.json && cp node_modules/node-package-helper/test/dummy/mjs/package.json build/mjs/package.json",
         "test-setup": "cd test && rm -rf output && mkdir output && cp -r sample/** output",
         "test": "vitest"
     },
-    "bugs": "https://github.com/Packer-Man/ts-add-js-extension/issues",
+    "bugs": "https://github.com/GervinFung/ts-add-js-extension/issues",
     "repository": {
         "type": "git",
-        "url": "https://github.com/Packer-Man/ts-add-js-extension"
+        "url": "https://github.com/GervinFung/ts-add-js-extension"
     },
     "devDependencies": {
         "@poolofdeath20/eslint-config": "^0.0.1",
-        "@types/node": "^16.11.10",
+        "@types/node": "^20.1.1",
         "@types/yargs": "^17.0.13",
-        "@typescript-eslint/eslint-plugin": "^5.40.0",
-        "@typescript-eslint/parser": "^5.40.0",
+        "@typescript-eslint/eslint-plugin": "^5.59.5",
+        "@typescript-eslint/parser": "^5.59.5",
         "eslint": "^8.25.0",
         "graphql": "^14.7.0",
-        "node-package-helper": "github:Packer-Man/node-package-helper",
+        "node-package-helper": "github:GervinFung/node-package-helper",
         "prettier": "^2.7.1",
-        "typescript": "^4.8.4",
+        "typescript": "^5.0.4",
         "vitest": "^0.24.3"
     },
     "dependencies": {
-        "@typescript-eslint/typescript-estree": "^5.40.0",
+        "@typescript-eslint/typescript-estree": "^5.59.5",
         "yargs": "^17.6.0"
     },
     "keywords": [

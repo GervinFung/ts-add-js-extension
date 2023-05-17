@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import { Node, Files, WriteCode } from './read-write';
+import type { Node, Files, WriteCode } from './read-write';
 import * as Estree from '@typescript-eslint/typescript-estree';
-import { extensions } from './const';
+import { extensionsUtil } from './const';
 
 type AddJSNode = Readonly<{
     before: string;
@@ -24,7 +24,7 @@ const checkJavaScriptFileExistByAppend = ({
 }: Readonly<{
     filePath: string;
 }>) => {
-    const { js, mjs } = extensions;
+    const { js, mjs } = extensionsUtil.extensions;
     const jsFile = filePath.concat(js);
     if (fs.existsSync(jsFile)) {
         return js;
@@ -62,7 +62,7 @@ const addJSExtension = ({
           filePathImported: string;
       }
 > => {
-    const { js, mjs } = extensions;
+    const { js, mjs } = extensionsUtil.extensions;
 
     const jsExtension = path.extname(filePath);
     const isJavaScript = jsExtension === js || jsExtension === mjs;
