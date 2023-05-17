@@ -1,5 +1,3 @@
-import yargs from 'yargs';
-
 type ParsedConfig = Readonly<{
     dir: string;
     showChanges?: boolean;
@@ -8,9 +6,7 @@ type ParsedConfig = Readonly<{
 
 type FinalizedConfig = ReturnType<typeof finalizedConfig>;
 
-type Argv = Parameters<
-    Parameters<ReturnType<typeof yargs>['command']>[0]['handler']
->[0];
+type Argv = Record<string, unknown>;
 
 /**
  * Internal use and for testing only

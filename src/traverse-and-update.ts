@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Node, Files, WriteCode } from './read-write';
+import type { Node, Files, WriteCode } from './read-write';
 import * as Estree from '@typescript-eslint/typescript-estree';
 import { extensionsUtil } from './const';
 
