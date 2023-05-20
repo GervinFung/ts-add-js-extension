@@ -23,7 +23,6 @@ const valuelizeConfig = (config: PartialConfig) => {
         ...config,
         showChanges,
         include: config.include ?? [],
-        showProgress: config.showProgress ?? showChanges,
     } as const;
 };
 

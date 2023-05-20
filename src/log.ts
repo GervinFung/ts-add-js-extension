@@ -40,7 +40,7 @@ export default class Log {
                         this.completedFiles.toString().length
                 )}. ${this.cyanify(file)}${' '.repeat(
                     repeat - file.length
-                )} at ${new Date()} ${
+                )} ${new Date()} ${
                     succeed ? this.yellowify('SUCCEED') : this.redify('FAILED')
                 }`
             );

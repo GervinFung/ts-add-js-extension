@@ -42,7 +42,7 @@ const tsAddJsExtension = async ({
     const file = File.create();
 
     return file.writeMany({
-        showProgress: requiredConfig.showProgress,
+        showChanges: requiredConfig.showChanges,
         withJSExtension: await file.findMany(requiredConfig),
     });
 };

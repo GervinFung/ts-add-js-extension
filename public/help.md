@@ -19,14 +19,11 @@ Options:
 
 Operation
 
-1. --dir Specifies the folder where JavaScript file extension needs to be added
+1. --dir - Specifies the folder where JavaScript file extension needs to be added
    [value: string] [required: yes]
 
-2. --include Specifies the folder of files that are imported or included in the dir folder, excluding the specified dir
+2. --include - Specifies the folder of files that are imported or included in the dir folder, excluding the specified dir
    [value: array of string] [required: no] [default: []]
 
-3. --showchanges Determines whether to show changes for modified files in table format. Deprecated in favor of `showprogress` and will direct passed value to it
-   [value: boolean] [required: no] [default: N/A]
-
-4. --showprogress Developers can use the `--showprogress` argument for large projects to display a progress feedback
+3. --showchanges - Determines whether to display progress feedback in the format of `Num. (File Updated) at (Time) (SUCCEED or FAILED)`
    [value: boolean] [required: no] [default: true]

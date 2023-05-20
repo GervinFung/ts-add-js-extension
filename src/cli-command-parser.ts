@@ -15,11 +15,6 @@ const commandKeyWords = {
         isMandatory: true,
         keyword: '--dir',
     },
-    showProgress: {
-        isMandatory: false,
-        keyword: '--showprogress',
-        default: true,
-    },
     include: {
         isMandatory: false,
         keyword: '--include',
@@ -125,19 +120,6 @@ class TokenParser {
         throw new Error(
             `${includeWord}=${includeTarget} is invalid, it can only receive boolean value`
         );
-    };
-
-    readonly processShowProgress = () => {
-        if (this.token !== commandKeyWords.showProgress.keyword) {
-            return {
-                status: 'no',
-            } as const;
-        }
-        return {
-            status: 'yes',
-            type: 'showProgress',
-            value: true,
-        } as const;
     };
 
     readonly processNonRecognisableToken = () => {
@@ -258,10 +240,6 @@ export default class ParseArgs {
             if (showChanges.status === 'yes') {
                 return showChanges;
             }
-            const showProgress = parser.processShowProgress();
-            if (showProgress.status === 'yes') {
-                return showProgress;
-            }
             return parser.processNonRecognisableToken();
         });
 
@@ -292,10 +270,6 @@ export default class ParseArgs {
             showChanges: nodes.find((node) => node.type === 'showChanges')
                 ?.value as ReturnType<
                 TokenParser['processShowChanges']
-            >['value'],
-            showProgress: nodes.find((node) => node.type === 'showProgress')
-                ?.value as ReturnType<
-                TokenParser['processShowProgress']
             >['value'],
         } as const;
     };

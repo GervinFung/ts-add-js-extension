@@ -71,10 +71,10 @@ export default class File {
     };
 
     readonly writeMany = async ({
-        showProgress,
+        showChanges,
         withJSExtension,
     }: Readonly<{
-        showProgress: boolean;
+        showChanges: boolean;
         withJSExtension: ReturnType<
             ReturnType<typeof traverseAndUpdateFileWithJSExtension>
         >;
@@ -85,7 +85,7 @@ export default class File {
             '' as string
         ).length;
 
-        const log = !(withJSExtension.length && showProgress)
+        const log = !(withJSExtension.length && showChanges)
             ? undefined
             : Log.fromNumberOfFiles(withJSExtension.length);
 
