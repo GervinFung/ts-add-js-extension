@@ -2,8 +2,8 @@ import fs from 'fs';
 import * as Estree from '@typescript-eslint/typescript-estree';
 import type { PartialConfig } from './cli-command-parser';
 import traverseAndUpdateFileWithJSExtension from './traverse-and-update';
-import Progress from './progress';
 import { extensionsUtil } from './const';
+import Log from './log';
 
 type Node = Readonly<{
     file: string;
@@ -71,17 +71,23 @@ export default class File {
     };
 
     readonly writeMany = async ({
-        showProgress,
+        showChanges,
         withJSExtension,
     }: Readonly<{
-        showProgress: boolean;
+        showChanges: boolean;
         withJSExtension: ReturnType<
             ReturnType<typeof traverseAndUpdateFileWithJSExtension>
         >;
     }>) => {
-        const progress = !(withJSExtension.length && showProgress)
+        const repeat = withJSExtension.reduce(
+            (longestFileName, { file }) =>
+                longestFileName?.length <= file.length ? file : longestFileName,
+            '' as string
+        ).length;
+
+        const log = !(withJSExtension.length && showChanges)
             ? undefined
-            : Progress.fromNumberOfFiles(withJSExtension.length);
+            : Log.fromNumberOfFiles(withJSExtension.length);
 
         try {
             const errors = (
@@ -96,23 +102,27 @@ export default class File {
                                   }>
                             >((resolve) =>
                                 fs.writeFile(file, code, (error) => {
-                                    progress?.incrementNumberOfFilesRan();
-                                    if (!error) {
-                                        progress?.show(file);
-                                        resolve(undefined);
-                                    } else {
-                                        resolve({
-                                            file,
-                                            error,
-                                        });
-                                    }
+                                    log?.increment({
+                                        repeat,
+                                        file,
+                                        succeed: !error,
+                                    });
+
+                                    resolve(
+                                        !error
+                                            ? undefined
+                                            : {
+                                                  file,
+                                                  error,
+                                              }
+                                    );
                                 })
                             )
                     )
                 )
             ).flatMap((element) => (!element ? [] : [element]));
 
-            progress?.end({ errors });
+            log?.end({ errors });
 
             return {
                 type: 'done',

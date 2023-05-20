@@ -17,15 +17,12 @@ const parseConfig = (_: Readonly<Record<string, unknown>>) => {
     );
 };
 
-const valuelizeConfig = (config: PartialConfig) => {
-    const showChanges = config.showChanges ?? true;
-    return {
+const valuelizeConfig = (config: PartialConfig) =>
+    ({
         ...config,
-        showChanges,
+        showChanges: config.showChanges ?? true,
         include: config.include ?? [],
-        showProgress: config.showProgress ?? showChanges,
-    } as const;
-};
+    } as const);
 
 export { valuelizeConfig, parseConfig };
 export type { PartialConfig as ParsedConfig };

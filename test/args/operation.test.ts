@@ -10,13 +10,11 @@ describe('Operation arguments parsing', () => {
                 '--dir=build/mjs',
                 '--include=build/dts',
                 '--showchanges=true',
-                '--showprogress',
             ]).asOperation()
         ).toStrictEqual({
             dir: 'build/mjs',
             include: ['build/dts'],
             showChanges: true,
-            showProgress: true,
         });
     });
     it('should parse config when optional options are absent', () => {
@@ -31,7 +29,6 @@ describe('Operation arguments parsing', () => {
             dir: 'build/mjs',
             include: undefined,
             showChanges: undefined,
-            showProgress: undefined,
         });
     });
     it('should parse config and throw error when mandatory options are absent', () => {
