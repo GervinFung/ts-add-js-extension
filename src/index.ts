@@ -38,12 +38,12 @@ const tsAddJsExtension = async ({
         );
     }
 
-    const requiredConfig = valuelizeConfig(config);
+    const trueConfig = valuelizeConfig(config);
     const file = File.create();
 
     return file.writeMany({
-        showChanges: requiredConfig.showChanges,
-        withJSExtension: await file.findMany(requiredConfig),
+        showChanges: trueConfig.showChanges,
+        withJSExtension: await file.findMany(trueConfig),
     });
 };
 

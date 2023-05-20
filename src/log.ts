@@ -15,9 +15,9 @@ export default class Log {
 
     private readonly redify = (word: string) => `\x1b[31m${word}\x1b[0m`;
 
-    private readonly yellowify = (word: string) => `\x1b[33m${word}\x1b[0m`;
+    private readonly greenify = (word: string) => `\x1b[32m${word}\x1b[0m`;
 
-    private readonly cyanify = (word: string) => `\x1b[36m${word}\x1b[0m`;
+    private readonly boldify = (word: string) => `\x1b[1:37m${word}\x1b[0m`;
 
     readonly increment = ({
         file,
@@ -38,10 +38,10 @@ export default class Log {
                 `${this.completedFiles}${' '.repeat(
                     this.numberOfFiles.toString().length -
                         this.completedFiles.toString().length
-                )}. ${this.cyanify(file)}${' '.repeat(
+                )}. ${this.boldify(file)}${' '.repeat(
                     repeat - file.length
-                )} ${new Date()} ${
-                    succeed ? this.yellowify('SUCCEED') : this.redify('FAILED')
+                )} - ${
+                    succeed ? this.greenify('SUCCEED') : this.redify('FAILED')
                 }`
             );
         }
