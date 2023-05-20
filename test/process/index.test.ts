@@ -22,17 +22,17 @@ describe('ts add js extension', () => {
     });
     it('should be able to append .js/.mjs extension for JavaScript file', async () => {
         const result = await tsAddJsExtension({
-            parsedConfigFunction: () => ({
+            config: {
                 dir: 'test/output/js',
-            }),
+            },
         });
         expect(result.type).toBe('done');
     });
     it('should be able to append .js/.mjs extension for Type Definition file', async () => {
         const result = await tsAddJsExtension({
-            parsedConfigFunction: () => ({
+            config: {
                 dir: 'test/output/ts',
-            }),
+            },
         });
         expect(result.type).toBe('done');
     });

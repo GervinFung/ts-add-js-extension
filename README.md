@@ -1,14 +1,13 @@
 # **ts-add-js-extension**
 
-Initially meant for TypeScript projects only, however, if you are lazy to add `.js` extension to your JavaScript relative import/export statement, you can use this as well.
+Initially designed for TypeScript projects exclusively, this solution also caters to those who prefer a more convenient approach when working with JavaScript.
+By automatically appending the `.js` or `.mjs` extension to each relative import and export statement in ES Module JavaScript, you can save yourself the effort of doing it manually.
+This feature is particularly beneficial for TypeScript projects that target ES Module.
 
-It add `.js` extension to each relative import and export for ES Module JavaScript, so you don't have to do it yourself, especially for TypeScript projects that targets ES Module
+It is worth noting that this package intelligently handles import/export statements and adds `/index.js` where necessary,
+allowing you to omit the explicit inclusion of index in the statement.
 
-**Note**:
-
-This package will automatically add `/index.js` for import/export statement whenever it should as we can omit `index` at the end of import/export
-
-Also, it will ignore for edge cases such as importing/exporting from a file named as `**.js.js`, resulting in `import * as Smth from '../**.js'`.
+Additionally, it can determine whether a file with the mjs or js extension is being imported or exported
 
 #### In TypeScript / JavaScript file
 
@@ -19,10 +18,12 @@ export { add, sub, mul, div } from './math';
 import div from './math/div';
 export * as div from './math/div';
 
+import word from './word';
+
 console.log(add(2, 1));
 ```
 
-#### will yield
+#### Will yield
 
 ```ts
 import { add } from './math/index.js';
@@ -31,60 +32,54 @@ export { add, sub, mul, div } from './math/index.js';
 import div from './math/div.js';
 export * as div from './math/div.js';
 
+import word from './word/index.mjs';
+
 console.log(add(2, 1));
 ```
-
-### Need a sample output?
-
-![Sample](docs/sample.png 'Sample')
 
 ## **_Question_**
 
 `Why do I build this?`
 
-Initially I wrote it only for myself because I don't like to have `.js` in my TypeScript import/export statement if I were to compile my TypeScript project to ESNext Module. The main reason being, I should not be importing a JavaScript file that do not exists, there's no JavaScript file in the source code folder being referenced at all and importing/exporting a file that don't exists makes no sense. In conclusion, a source code should not be referring to it's own build artifacts/output
+Originally, I created this solution for personal use due to my preference of not including the `.js` extension in TypeScript import/export statements when compiling my TypeScript project to ES Module.
+This decision was motivated by the belief that it is unnecessary to import/export a JavaScript file that does not exist in the source code folder.
+Importing or exporting a file that does not exist would be illogical.
+In essence, a source code should not reference its own build artifacts or output file
 
-Another option is to compile it to CommonJS Module, but I don't want to. This package can be used for my TypeScript or JavaScript ESM projects that don't use a bundler like `esbuild` or `swc`
+Additionally, another option would be to compile the TypeScript project to CommonJS Module.
+However, I prefer not to take that approach.
+Instead, this package is designed to cater to TypeScript or JavaScript projects that use ES Module (ESM) format and do not rely on a bundler like `esbuild` or `swc`.
 
 `How do I raise an issue?`
 
-Feel free to raise an issue if you have a question, an enhancement, or a bug report.
+I encourage you to actively participate in the development process by opening issues for bug reports, feature requests, or any questions you may have.
+You are also welcome to contribute to the project by suggesting a pull request.
+Simply fork the repository, make the necessary code changes, add relevant tests, and push your changes.
+We appreciate any feedback you provide and value your contributions to the project
 
-## **_How to use_**
+## Arguments
 
-```sh
-yarn add -D ts-add-js-extension
-```
+| Argument     | Usage                                                                                                                                           | Required | Status     | Default Value |
+| :----------- | :---------------------------------------------------------------------------------------------------------------------------------------------- | :------- | ---------- | ------------- |
+| dir          | Specifies the folder where JavaScript file extension needs to be added                                                                          | Yes      | Active     | None          |
+| include      | Specifies the folder of files that are imported or included in the dir folder, excluding the specified dir                                      | No       | Deprecated | []            |
+| showchanges  | Determines whether to show changes for modified files in table format. Deprecated in favor of `showprogress` and will direct passed value to it | No       | Deprecated | N/A           |
+| showprogress | Developers can use the `--showprogress` argument for large projects to display a progress feedback                                              | No       | Active     | true          |
 
-```sh
-pnpm add -D ts-add-js-extension
-```
-
-```sh
-npm i -D ts-add-js-extension
-```
-
-There are two arugments
-
-| Argument    | Usage                                                                                                                           | Type         |
-| :---------- | :------------------------------------------------------------------------------------------------------------------------------ | :----------- |
-| dir         | The folder that need to add .js extension                                                                                       | **Required** |
-| include     | The folder of files that is imported or included in `dir` folder, exclusing the `dir` specified                                 | **Optional** |
-| showchanges | Determine whether to show showchanges for changed files in table format. default to `true`                                      | **Optional** |
-| extension   | Search for JavaScript file that ends with that extension and add that extension to each relative import/export, default to `js` | **Optional** |
+_Please note that the status column indicates whether an argument is active or deprecated, and the default value column specifies the default value if not provided_
 
 ## Usage
 
 ### In package.json add:
 
-Your compiled TypeScript folder or JavaScript folder can be named whatever you like, in this case the I will name it as dist
+The compiled folder for TypeScript or JavaScript can be named according to your preference. In this case, I will use the name "dist" as an example.
 
 ### Command line:
 
 ```json
 {
     "scripts": {
-        "<command name can be anything>": "ts-add-js-extension add --dir=dist"
+        "<command name can be anything>": "ts-add-js-extension --dir=dist"
     }
 }
 ```
@@ -97,14 +92,14 @@ tsAddJsExtension({
 });
 ```
 
-If you need to include various root folder, for example, `common`, `dist`, `build`, you name it
+If you need to include multiple root folders, such as "common", "dist", "build", or any other names you prefer, you can specify them accordingly.
 
 ### Command line:
 
 ```json
 {
     "scripts": {
-        "<command name can be anything>": "ts-add-js-extension add --dir=dist --include=common dist build --showchanges=true --extension=mjs"
+        "<command name can be anything>": "ts-add-js-extension add --dir=dist --include=common dist build --showchanges=true"
     }
 }
 ```
@@ -114,8 +109,7 @@ If you need to include various root folder, for example, `common`, `dist`, `buil
 ```js
 tsAddJsExtension({
     dir: 'dist',
-    extension: 'mjs',
-    showChanges: true,
+    showProgress: true,
     include: ['common', 'dist', 'build'],
 });
 ```
