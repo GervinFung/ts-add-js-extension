@@ -59,11 +59,11 @@ We appreciate any feedback you provide and value your contributions to the proje
 
 ## Arguments
 
-| Argument    | Usage                                                                                                                | Required | Status     | Default Value |
-| :---------- | :------------------------------------------------------------------------------------------------------------------- | :------- | ---------- | ------------- |
-| dir         | Specifies the folder where JavaScript file extension needs to be added                                               | Yes      | Active     | None          |
-| include     | Specifies the folder of files that are imported or included in the dir folder, excluding the specified dir           | No       | Deprecated | []            |
-| showchanges | Determines whether to display progress feedback in the format of `Num. (File Updated) at (Time) (SUCCEED or FAILED)` | No       | Active     | True          |
+| Argument    | Usage                                                                                                        | Required | Status     | Default Value |
+| :---------- | :----------------------------------------------------------------------------------------------------------- | :------- | ---------- | ------------- |
+| dir         | Specifies the folder where JavaScript file extension needs to be added                                       | Yes      | Active     | None          |
+| include     | Specifies the folder of files that are imported or included in the dir folder, excluding the specified dir   | No       | Deprecated | []            |
+| showchanges | Determines whether to display progress feedback in the format of `Num. (File Updated) - (SUCCEED or FAILED)` | No       | Active     | True          |
 
 _Please note that the status column indicates whether an argument is active or deprecated, and the default value column specifies the default value if not provided_
 

@@ -25,5 +25,5 @@ Operation
 2. --include - Specifies the folder of files that are imported or included in the dir folder, excluding the specified dir
    [value: array of string] [required: no] [default: []]
 
-3. --showchanges - Determines whether to display progress feedback in the format of `Num. (File Updated) at (Time) (SUCCEED or FAILED)`
+3. --showchanges - Determines whether to display progress feedback in the format of `Num. (File Updated) - (SUCCEED or FAILED)`
    [value: boolean] [required: no] [default: true]
