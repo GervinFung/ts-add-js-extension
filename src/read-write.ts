@@ -1,6 +1,6 @@
 import fs from 'fs';
 import * as Estree from '@typescript-eslint/typescript-estree';
-import type { FinalizedConfig } from './config';
+import type { PartialConfig } from './cli-command-parser';
 import traverseAndUpdateFileWithJSExtension from './traverse-and-update';
 import Progress from './progress';
 import { extensionsUtil } from './const';
@@ -22,17 +22,11 @@ type WriteCode = Readonly<{
 
 type Files = ReadonlyArray<string>;
 
-const getAllJSAndDTSFiles = ({
-    dir,
-}: Readonly<{
-    dir: string;
-}>): Files =>
+const getAllJSAndDTSFiles = (dir: string): Files =>
     fs.readdirSync(dir).flatMap((file) => {
         const filePath = `${dir}/${file}`;
         if (fs.statSync(filePath).isDirectory()) {
-            return getAllJSAndDTSFiles({
-                dir: filePath,
-            });
+            return getAllJSAndDTSFiles(filePath);
         }
         return !extensionsUtil.matchAny(filePath) ? [] : [filePath];
     });
@@ -56,77 +50,80 @@ const getAllJSAndDTSCodes = (files: Files): ReadonlyArray<Promise<Node>> =>
         };
     });
 
-const file = () => ({
-    findMany: async ({
+export default class File {
+    private constructor() {}
+
+    static readonly create = () => new this();
+
+    readonly findMany = async ({
         dir,
         include,
     }: Readonly<{
-        dir: FinalizedConfig['dir'];
+        dir: PartialConfig['dir'];
         include: ReadonlyArray<string>;
     }>) => {
         // user may import files from `common` into `src`
-        const files: Files = include.concat(dir).flatMap((dir) =>
-            getAllJSAndDTSFiles({
-                dir,
-            })
-        );
+        const files: Files = include.concat(dir).flatMap(getAllJSAndDTSFiles);
 
-        return (
-            await getAllJSAndDTSCodes(files).reduce(
-                async (prev, curr) => (await prev).concat(await curr),
-                Promise.resolve([] as ReadonlyArray<Node>)
-            )
-        ).flatMap((node) =>
-            traverseAndUpdateFileWithJSExtension({
-                node,
-                files,
-            })
+        return (await Promise.all(getAllJSAndDTSCodes(files))).flatMap(
+            traverseAndUpdateFileWithJSExtension(files)
         );
-    },
-    writeMany: async ({
-        showChanges,
+    };
+
+    readonly writeMany = async ({
+        showProgress,
         withJSExtension,
     }: Readonly<{
-        showChanges: boolean;
+        showProgress: boolean;
         withJSExtension: ReturnType<
-            typeof traverseAndUpdateFileWithJSExtension
+            ReturnType<typeof traverseAndUpdateFileWithJSExtension>
         >;
     }>) => {
-        const progress = !(withJSExtension.length && showChanges)
+        const progress = !(withJSExtension.length && showProgress)
             ? undefined
             : Progress.fromNumberOfFiles(withJSExtension.length);
 
-        const errors = (
-            await Promise.all(
-                withJSExtension.flatMap(
-                    ({ code, file }) =>
-                        new Promise<
-                            | undefined
-                            | Readonly<{
-                                  file: string;
-                                  error: NodeJS.ErrnoException;
-                              }>
-                        >((resolve) =>
-                            fs.writeFile(file, code, (error) => {
-                                progress?.incrementNumberOfFilesRan();
-                                if (!error) {
-                                    progress?.show(file);
-                                    resolve(undefined);
-                                } else {
-                                    resolve({
-                                        file,
-                                        error,
-                                    });
-                                }
-                            })
-                        )
+        try {
+            const errors = (
+                await Promise.all(
+                    withJSExtension.map(
+                        ({ code, file }) =>
+                            new Promise<
+                                | undefined
+                                | Readonly<{
+                                      file: string;
+                                      error: NodeJS.ErrnoException;
+                                  }>
+                            >((resolve) =>
+                                fs.writeFile(file, code, (error) => {
+                                    progress?.incrementNumberOfFilesRan();
+                                    if (!error) {
+                                        progress?.show(file);
+                                        resolve(undefined);
+                                    } else {
+                                        resolve({
+                                            file,
+                                            error,
+                                        });
+                                    }
+                                })
+                            )
+                    )
                 )
-            )
-        ).flatMap((element) => (!element ? [] : [element]));
+            ).flatMap((element) => (!element ? [] : [element]));
 
-        progress?.end({ errors });
-    },
-});
+            progress?.end({ errors });
+
+            return {
+                type: 'done',
+            } as const;
+        } catch (error) {
+            return {
+                type: 'error',
+                error,
+            } as const;
+        }
+    };
+}
 
 export type { Node, Files, WriteCode };
-export default file;

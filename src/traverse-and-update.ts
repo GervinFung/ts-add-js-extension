@@ -108,113 +108,111 @@ const addJSExtension = ({
     };
 };
 
-const traverseAndUpdateFileWithJSExtension = ({
-    files,
-    node: {
+const traverseAndUpdateFileWithJSExtension =
+    (files: Files) =>
+    ({
         code,
         file,
         ast: { body },
-    },
-}: Readonly<{
-    node: Node;
-    files: Files;
-}>): ReadonlyArray<
-    WriteCode &
-        Readonly<{
-            replaceNodes: ReplaceNodes;
-        }>
-> => {
-    const codeWithoutCarriageReturn = code.replace(/\r/gm, '');
-    const splitted = codeWithoutCarriageReturn.split('\n');
-    const statementType = Estree.AST_NODE_TYPES;
+    }: Node): ReadonlyArray<
+        WriteCode &
+            Readonly<{
+                replaceNodes: ReplaceNodes;
+            }>
+    > => {
+        const codeWithoutCarriageReturn = code.replace(/\r/gm, '');
+        const splitted = codeWithoutCarriageReturn.split('\n');
+        const statementType = Estree.AST_NODE_TYPES;
 
-    const replaceNodes: ReplaceNodes = body.flatMap((statement) => {
-        const { type } = statement;
-        switch (type) {
-            case statementType.ImportDeclaration:
-            case statementType.ExportAllDeclaration:
-            case statementType.ExportNamedDeclaration: {
-                const { source } = statement;
-                if (!source) {
-                    return [];
-                } else {
-                    const {
-                        value,
-                        loc: { end },
-                    } = source;
-                    const delimiter = '/';
-                    const fileName = formProperFilePath({
-                        delimiter,
-                        filePath: !value.endsWith(delimiter)
-                            ? value
-                            : value.slice(0, -1),
-                    })
-                        .split(delimiter)
-                        .pop();
-                    if (!fileName) {
-                        throw new Error(
-                            `Impossible for file name to be non-existent for ${value}`
-                        );
-                    }
-                    if (!value.startsWith('.')) {
+        const replaceNodes: ReplaceNodes = body.flatMap((statement) => {
+            const { type } = statement;
+            switch (type) {
+                case statementType.ImportDeclaration:
+                case statementType.ExportAllDeclaration:
+                case statementType.ExportNamedDeclaration: {
+                    const { source } = statement;
+                    if (!source) {
                         return [];
                     } else {
-                        const result = addJSExtension({
+                        const {
+                            value,
+                            loc: { end },
+                        } = source;
+                        const delimiter = '/';
+                        const fileName = formProperFilePath({
                             delimiter,
-                            importPath: value,
-                            filePath: path.join(file, '..', value),
-                        });
+                            filePath: !value.endsWith(delimiter)
+                                ? value
+                                : value.slice(0, -1),
+                        })
+                            .split(delimiter)
+                            .pop();
+                        if (!fileName) {
+                            throw new Error(
+                                `Impossible for file name to be non-existent for ${value}`
+                            );
+                        }
+                        if (!value.startsWith('.')) {
+                            return [];
+                        } else {
+                            const result = addJSExtension({
+                                delimiter,
+                                importPath: value,
+                                filePath: path.join(file, '..', value),
+                            });
 
-                        switch (result.procedure) {
-                            case 'skip': {
-                                return [];
-                            }
-                            case 'proceed': {
-                                // if file name not included in list of js file read
-                                const { filePathImported, importPath } = result;
-                                const fileFound = files.find((file) =>
-                                    file.endsWith(filePathImported)
-                                );
-                                if (!fileFound) {
+                            switch (result.procedure) {
+                                case 'skip': {
                                     return [];
                                 }
-
-                                const before = splitted[end.line - 1];
-                                if (!before) {
-                                    throw new Error(
-                                        `Old Code: ${before} is undefined`
+                                case 'proceed': {
+                                    // if file name not included in list of js file read
+                                    const { filePathImported, importPath } =
+                                        result;
+                                    const fileFound = files.find((file) =>
+                                        file.endsWith(filePathImported)
                                     );
+                                    if (!fileFound) {
+                                        return [];
+                                    }
+
+                                    const before = splitted[end.line - 1];
+                                    if (!before) {
+                                        throw new Error(
+                                            `Old Code: ${before} is undefined`
+                                        );
+                                    }
+                                    return [
+                                        {
+                                            before,
+                                            after: before.replace(
+                                                value,
+                                                importPath
+                                            ),
+                                        },
+                                    ];
                                 }
-                                return [
-                                    {
-                                        before,
-                                        after: before.replace(
-                                            value,
-                                            importPath
-                                        ),
-                                    },
-                                ];
                             }
                         }
                     }
                 }
             }
-        }
-        return [];
-    });
+            return [];
+        });
 
-    return !replaceNodes.length
-        ? []
-        : [
-              {
-                  file,
-                  replaceNodes,
-                  code: replaceNodes.reduce(
-                      (prev, { before, after }) => prev.replace(before, after),
-                      codeWithoutCarriageReturn
-                  ),
-              },
-          ];
-};
+        return !replaceNodes.length
+            ? []
+            : [
+                  {
+                      file,
+                      replaceNodes,
+                      code: replaceNodes.reduce(
+                          (prev, { before, after }) =>
+                              prev.replace(before, after),
+                          codeWithoutCarriageReturn
+                      ),
+                  },
+              ];
+    };
 
 export default traverseAndUpdateFileWithJSExtension;

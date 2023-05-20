@@ -1,3 +1,7 @@
+## 1.3.4 (15 May 2023)
+
+-   (Fix) Remove `dts` folder and create `dts` folders for `cjs` and `mjs` folder
+
 ## 1.3.3 (6 Mar 2023)
 
 -   (Fix) Auto detect whether a file imported/exported is with `.js` or `.mjs` extension, so there is no need to specify what extension to be added

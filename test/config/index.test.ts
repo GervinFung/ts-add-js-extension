@@ -2,37 +2,19 @@ import { parseConfig } from '../../src';
 import { describe, it, expect } from 'vitest';
 
 describe('Config parsing', () => {
-    it('should parse config when all config options are given', () => {
-        const options = {
-            dir: 'dir',
-            include: ['hi'],
-        };
-        expect(
+    it('should throw error when parsing config the old way', () => {
+        expect(() =>
             parseConfig({
-                _: [],
-                $0: '',
-                ...options,
-                showchanges: true,
+                dir: 'dir',
+                include: ['hi'],
             })
-        ).toStrictEqual({
-            ...options,
-            showChanges: true,
-        });
+        ).toThrowError();
     });
     it('should parse config when only non optional config options are given', () => {
-        const options = {
-            dir: 'dir',
-        };
-        expect(
+        expect(() =>
             parseConfig({
-                _: [],
-                $0: '',
-                ...options,
+                dir: 'dir',
             })
-        ).toStrictEqual({
-            ...options,
-            include: undefined,
-            showChanges: undefined,
-        });
+        ).toThrowError();
     });
 });

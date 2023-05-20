@@ -1,90 +1,77 @@
-import yargs from 'yargs';
-import file from './read-write';
-import { hideBin } from 'yargs/helpers';
-import { finalizedConfig, parseConfig, type ParsedConfig } from './config';
+import File from './read-write';
+import ParseArgs, { type PartialConfig } from './cli-command-parser';
+import { parseConfig, valuelizeConfig, type ParsedConfig } from './config';
 
 const tsAddJsExtension = async ({
+    config,
     parsedConfigFunction,
 }: Readonly<{
-    parsedConfigFunction: () => ParsedConfig;
+    config: PartialConfig;
+    /**
+     * @deprecated since version 1.4.0
+     * Will be deleted in version 2.0
+     * To pass configurations to `tsAddJsExtension`
+     * Just pass the configurations directly
+     * ```
+     * tsAddJsExtension({
+     *  config:{
+     *   dir:'dist'
+     *  }
+     * })
+     * ```
+     * Instead of passing with this function
+     * ```
+     * tsAddJsExtension({
+     *  parsedConfigFunction: () => parseConfig(argv)
+     * })
+     * ```
+     * As it will be ignroed
+     */
+    parsedConfigFunction?: () => ParsedConfig;
 }>) => {
-    const config = finalizedConfig(parsedConfigFunction());
-    const fileInstance = file();
-    return fileInstance
-        .writeMany({
-            showChanges: config.showChanges,
-            withJSExtension: await fileInstance.findMany({
-                dir: config.dir,
-                include: config.include,
-            }),
-        })
-        .then(
-            () =>
-                ({
-                    type: 'done',
-                } as const)
-        )
-        .catch(
-            (error) =>
-                ({
-                    type: 'error',
-                    error,
-                } as const)
+    if (parsedConfigFunction) {
+        throw new Error(
+            [
+                `Please do not use parsedConfigFunction as it's deprecated and contains complicated parsing`,
+                `Instead, just pass configurations directly`,
+            ].join('\n')
         );
+    }
+
+    const requiredConfig = valuelizeConfig(config);
+    const file = File.create();
+
+    return file.writeMany({
+        showProgress: requiredConfig.showProgress,
+        withJSExtension: await file.findMany(requiredConfig),
+    });
 };
 
-const main = (args: Array<string>) => {
-    const describe =
-        'Use to add .js extension for the relative import/export statement in the JavaScript code if there is lack of .js extension in the import/export statement.';
-    return yargs(hideBin(args))
-        .usage(describe)
-        .command({
-            command: 'add',
-            describe,
-            builder: {
-                dir: {
-                    type: 'string',
-                    demandOption: true,
-                    describe: 'The folder that need to add .js extension',
-                },
-                include: {
-                    type: 'array',
-                    demandOption: false,
-                    describe:
-                        'The folder of files that is imported or included in `dir` folder, exclusing the `dir` specified',
-                },
-                showchanges: {
-                    default: true,
-                    type: 'boolean',
-                    demandOption: false,
-                    describe:
-                        'Show changes made to import/export declaration in table format',
-                },
-            },
-            handler: (argv) => {
-                tsAddJsExtension({
-                    parsedConfigFunction: () => parseConfig(argv),
-                })
-                    .then((result) => {
-                        switch (result.type) {
-                            case 'error': {
-                                console.error(result.error);
-                            }
-                        }
-                    })
-                    .catch(console.error);
-            },
+const main = (args: ReadonlyArray<string>) => {
+    const parser = ParseArgs.create(args);
+    const help = parser.asHelp();
+
+    if (help.proceed) {
+        return console.log(help.guide);
+    }
+
+    const version = parser.asVersion();
+
+    if (version.proceed) {
+        return console.log(version.value);
+    }
+
+    return tsAddJsExtension({
+        config: parser.asOperation(),
+    })
+        .then((result) => {
+            switch (result.type) {
+                case 'error': {
+                    console.error(result.error);
+                }
+            }
         })
-        .example(
-            "Assume javascript files are placed in folder called 'build'\nThe command will be as below\n$0 add --dir=dist --include=common dist build --showchanges=true",
-            [
-                '1. "dir" stands for the directory of that needs to add .js extension. (string)',
-                `2. "include" stands for the directory of files that is imported or included in 'dir' folder, exclusing the 'dir' specified. (array)`,
-                '3. "showchanges" determines whether to show the changes made to import/export in table format. (boolean)',
-            ].join('\n')
-        )
-        .help()
-        .strict().argv;
+        .catch(console.error);
 };
 
 export { parseConfig, tsAddJsExtension };

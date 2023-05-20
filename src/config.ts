@@ -1,42 +1,31 @@
-type ParsedConfig = Readonly<{
-    dir: string;
-    showChanges?: boolean;
-    include?: ReadonlyArray<string>;
-}>;
-
-type FinalizedConfig = ReturnType<typeof finalizedConfig>;
-
-type Argv = Record<string, unknown>;
+import type { PartialConfig } from './cli-command-parser';
 
 /**
- * Internal use and for testing only
- **/
-const parseConfig = (argv: Argv): ParsedConfig => {
-    const include = argv['include'];
-
-    return {
-        dir: argv['dir'] as string,
-        showChanges: argv['showchanges'] as boolean,
-        include: !Array.isArray(include)
-            ? undefined
-            : include.map((dir) => {
-                  const type = typeof dir;
-                  if (type === 'string') {
-                      return dir as string;
-                  }
-                  throw new Error(
-                      `expect ${dir} to be string, got dir: ${dir} as ${type} instead`
-                  );
-              }),
-    };
+ * @deprecated since version 1.4.0
+ * Will be deleted in version 2.0
+ * There is no need to parse config with this function
+ * As configurations can be passed directly
+ * Using this function will halt the program
+ * And requires you to write configs directly
+ * */
+const parseConfig = (_: Readonly<Record<string, unknown>>) => {
+    throw new Error(
+        [
+            `Function parseConfig should not be used, this function exists because of "yargs"`,
+            `Now yargs is removed, cli arguments parser is hand-written`,
+        ].join('\n')
+    );
 };
 
-const finalizedConfig = (config: ParsedConfig) =>
-    ({
+const valuelizeConfig = (config: PartialConfig) => {
+    const showChanges = config.showChanges ?? true;
+    return {
         ...config,
+        showChanges,
         include: config.include ?? [],
-        showChanges: config.showChanges ?? true,
-    } as const);
+        showProgress: config.showProgress ?? showChanges,
+    } as const;
+};
 
-export { finalizedConfig, parseConfig };
-export type { FinalizedConfig, ParsedConfig };
+export { valuelizeConfig, parseConfig };
+export type { PartialConfig as ParsedConfig };
