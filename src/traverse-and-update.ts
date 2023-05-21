@@ -124,6 +124,7 @@ const traverseAndUpdateFileWithJSExtension =
                         }
 
                         const moduleSpecifier: string = asString({
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                             // @ts-ignore
                             value: node.moduleSpecifier.text,
                             error: () =>

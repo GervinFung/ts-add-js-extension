@@ -22,8 +22,7 @@
         "build"
     ],
     "scripts": {
-        "installation": "pnpm i --frozen-lockfile",
-        "lint": "eslint src/ test/ -f='stylish' --color",
+        "lint": "eslint --ignore-path .gitignore src/ test/ -f='stylish' --color",
         "format": "prettier --ignore-path .gitignore --write src/ test/",
         "format-check": "prettier --ignore-path .gitignore --check src/ test/",
         "build-cjs": "tsc -p tsconfig.cjs.json && chmod +x build/cjs/bin.js",
