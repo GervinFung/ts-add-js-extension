@@ -2,6 +2,18 @@
 
 exports[`ts add js extension > should read the code and ensure each import/export statemnt is properly formed for "js/1.js" 1`] = `
 "import * as fs from 'fs';
+import abcdefgihijk, {
+    box,
+    dialog,
+    table,
+    cell,
+    div,
+    h1,
+    h2,
+    h4,
+    h5,
+    h6,
+} from './2.js';
 import { fs } from './2.js';
 import * as sample2 from './2.js';
 import * as sampleExport2 from '../js/1.js';

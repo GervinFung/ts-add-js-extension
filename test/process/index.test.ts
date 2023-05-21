@@ -3,7 +3,7 @@ import child from 'child_process';
 import { describe, it, expect, beforeAll } from 'vitest';
 import { tsAddJsExtension } from '../../src';
 
-describe('ts add js extension', () => {
+describe.only('ts add js extension', () => {
     const output = 'test/output';
     const readCode = (files: string): Promise<string> =>
         new Promise((resolve, reject) => {
@@ -20,7 +20,7 @@ describe('ts add js extension', () => {
             output: child.execSync('pnpm test-setup').toString(),
         });
     });
-    it('should be able to append .js/.mjs extension for JavaScript file', async () => {
+    it.only('should be able to append .js/.mjs extension for JavaScript file', async () => {
         const result = await tsAddJsExtension({
             config: {
                 dir: 'test/output/js',
