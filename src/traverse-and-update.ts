@@ -1,15 +1,9 @@
 import fs from 'fs';
 import path from 'path';
-import type { Node, Files, WriteCode } from './read-write';
-import * as Estree from '@typescript-eslint/typescript-estree';
+import ts from 'typescript';
+import type { SourceFile, Files } from './read-write';
 import { extensionsUtil } from './const';
-
-type AddJSNode = Readonly<{
-    before: string;
-    after: string;
-}>;
-
-type ReplaceNodes = ReadonlyArray<AddJSNode>;
+import { asString } from './type';
 
 const formProperFilePath = ({
     delimiter,
@@ -109,107 +103,109 @@ const addJSExtension = ({
 };
 
 const traverseAndUpdateFileWithJSExtension =
-    (files: Files) =>
-    ({
-        code,
-        file,
-        ast: { body },
-    }: Node): ReadonlyArray<
-        WriteCode &
-            Readonly<{
-                replaceNodes: ReplaceNodes;
-            }>
-    > => {
-        const codeWithoutCarriageReturn = code.replace(/\r/gm, '');
-        const splitted = codeWithoutCarriageReturn.split('\n');
-        const statementType = Estree.AST_NODE_TYPES;
+    (files: Files) => (sourceFile: SourceFile) => {
+        const charactersDelimiter = '';
+        const characters = sourceFile.getText().split(charactersDelimiter);
 
-        const replaceNodes: ReplaceNodes = body.flatMap((statement) => {
-            const { type } = statement;
-            switch (type) {
-                case statementType.ImportDeclaration:
-                case statementType.ExportAllDeclaration:
-                case statementType.ExportNamedDeclaration: {
-                    const { source } = statement;
-                    if (!source) {
-                        return [];
-                    } else {
-                        const {
-                            value,
-                            loc: { end },
-                        } = source;
+        const replaceNodes = sourceFile.statements
+            .map((statement) => statement as ts.Node)
+            .flatMap((statement) => {
+                const { kind } = statement;
+
+                switch (kind) {
+                    case ts.SyntaxKind.ImportDeclaration:
+                    case ts.SyntaxKind.ExportDeclaration: {
+                        const node = statement as
+                            | ts.ExportDeclaration
+                            | ts.ImportDeclaration;
+
+                        if (!node.moduleSpecifier) {
+                            return [];
+                        }
+
+                        const moduleSpecifier: string = asString({
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            value: node.moduleSpecifier.text,
+                            error: () =>
+                                new Error(
+                                    'Module specifier of node should have text'
+                                ),
+                        });
+
                         const delimiter = '/';
+
                         const fileName = formProperFilePath({
                             delimiter,
-                            filePath: !value.endsWith(delimiter)
-                                ? value
-                                : value.slice(0, -1),
+                            filePath: !moduleSpecifier.endsWith(delimiter)
+                                ? moduleSpecifier
+                                : moduleSpecifier.slice(0, -1),
                         })
                             .split(delimiter)
                             .pop();
+
                         if (!fileName) {
                             throw new Error(
-                                `Impossible for file name to be non-existent for ${value}`
+                                `Impossible for file name to be non-existent for ${moduleSpecifier}`
                             );
                         }
-                        if (!value.startsWith('.')) {
-                            return [];
-                        } else {
+
+                        if (moduleSpecifier.startsWith('.')) {
                             const result = addJSExtension({
                                 delimiter,
-                                importPath: value,
-                                filePath: path.join(file, '..', value),
+                                importPath: moduleSpecifier,
+                                filePath: path.join(
+                                    sourceFile.fileName,
+                                    '..',
+                                    moduleSpecifier
+                                ),
                             });
 
                             switch (result.procedure) {
-                                case 'skip': {
-                                    return [];
-                                }
                                 case 'proceed': {
                                     // if file name not included in list of js file read
                                     const { filePathImported, importPath } =
                                         result;
-                                    const fileFound = files.find((file) =>
-                                        file.endsWith(filePathImported)
-                                    );
-                                    if (!fileFound) {
-                                        return [];
-                                    }
+                                    if (
+                                        files.find((file) =>
+                                            file.endsWith(filePathImported)
+                                        )
+                                    ) {
+                                        const before = characters
+                                            .filter(
+                                                (_, index) =>
+                                                    index > node.pos &&
+                                                    index < node.end
+                                            )
+                                            .join(charactersDelimiter);
 
-                                    const before = splitted[end.line - 1];
-                                    if (!before) {
-                                        throw new Error(
-                                            `Old Code: ${before} is undefined`
-                                        );
+                                        return [
+                                            {
+                                                before,
+                                                after: before.replace(
+                                                    moduleSpecifier,
+                                                    importPath
+                                                ),
+                                            },
+                                        ];
                                     }
-                                    return [
-                                        {
-                                            before,
-                                            after: before.replace(
-                                                value,
-                                                importPath
-                                            ),
-                                        },
-                                    ];
                                 }
                             }
                         }
                     }
                 }
-            }
-            return [];
-        });
+                return [];
+            });
 
         return !replaceNodes.length
             ? []
             : [
                   {
-                      file,
-                      replaceNodes,
+                      file: sourceFile.fileName,
                       code: replaceNodes.reduce(
                           (prev, { before, after }) =>
                               prev.replace(before, after),
-                          codeWithoutCarriageReturn
+                          characters.join(charactersDelimiter)
                       ),
                   },
               ];

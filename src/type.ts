@@ -12,4 +12,12 @@ const guard = <T, Err extends Error>({
     throw error();
 };
 
-export { guard };
+const asString = ({ value, error }: Parameters<typeof guard>[0]) => {
+    const s = value;
+    if (typeof s === 'string') {
+        return s;
+    }
+    throw error();
+};
+
+export { guard, asString };

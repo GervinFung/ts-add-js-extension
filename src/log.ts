@@ -13,9 +13,10 @@ export default class Log {
         }
     }
 
+    // ref: https://chrisyeh96.github.io/2020/03/28/terminal-colors.html
     private readonly redify = (word: string) => `\x1b[31m${word}\x1b[0m`;
 
-    private readonly greenify = (word: string) => `\x1b[32m${word}\x1b[0m`;
+    private readonly cyanify = (word: string) => `\x1b[36m${word}\x1b[0m`;
 
     private readonly boldify = (word: string) => `\x1b[1:37m${word}\x1b[0m`;
 
@@ -35,13 +36,11 @@ export default class Log {
         } else {
             this.completedFiles++;
             console.log(
-                `${this.completedFiles}${' '.repeat(
+                `${this.completedFiles}. ${' '.repeat(
                     this.numberOfFiles.toString().length -
                         this.completedFiles.toString().length
-                )}. ${this.boldify(file)}${' '.repeat(
-                    repeat - file.length
-                )} - ${
-                    succeed ? this.greenify('SUCCEED') : this.redify('FAILED')
+                )}${this.boldify(file)}${' '.repeat(repeat - file.length)} - ${
+                    succeed ? this.cyanify('SUCCEED') : this.redify('FAILED')
                 }`
             );
         }

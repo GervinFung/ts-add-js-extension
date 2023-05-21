@@ -1,24 +1,11 @@
 import fs from 'fs';
-import * as Estree from '@typescript-eslint/typescript-estree';
+import ts from 'typescript';
 import type { PartialConfig } from './cli-command-parser';
 import traverseAndUpdateFileWithJSExtension from './traverse-and-update';
 import { extensionsUtil } from './const';
 import Log from './log';
 
-type Node = Readonly<{
-    file: string;
-    code: string;
-    ast: Estree.AST<
-        Readonly<{
-            loc: true;
-        }>
-    >;
-}>;
-
-type WriteCode = Readonly<{
-    code: string;
-    file: string;
-}>;
+type SourceFile = Awaited<ReturnType<typeof getAllJSAndDTSCodes>[0]>;
 
 type Files = ReadonlyArray<string>;
 
@@ -40,14 +27,10 @@ const readCode = (files: string): Promise<string> =>
             .on('error', reject);
     });
 
-const getAllJSAndDTSCodes = (files: Files): ReadonlyArray<Promise<Node>> =>
+const getAllJSAndDTSCodes = (files: Files) =>
     files.map(async (file) => {
         const code = await readCode(file);
-        return {
-            file,
-            code,
-            ast: Estree.parse(code, { loc: true }),
-        };
+        return ts.createSourceFile(file, code, ts.ScriptTarget.ESNext);
     });
 
 export default class File {
@@ -136,4 +119,4 @@ export default class File {
     };
 }
 
-export type { Node, Files, WriteCode };
+export type { SourceFile, Files };
