@@ -20,7 +20,7 @@ jobs:
                   npm i --location=global pnpm
 
             - name: Install Depedencies
-              run: pnpm installation
+              run: pnpm i
 
             - name: Run Linter
               run: pnpm lint
