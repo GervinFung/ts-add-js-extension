@@ -3,7 +3,7 @@ import child from 'child_process';
 import { describe, it, expect, beforeAll } from 'vitest';
 import { tsAddJsExtension } from '../../src';
 
-describe.only('ts add js extension', () => {
+describe('ts add js extension', () => {
     const output = 'test/output';
     const readCode = (files: string): Promise<string> =>
         new Promise((resolve, reject) => {
