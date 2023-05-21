@@ -20,7 +20,7 @@ describe('ts add js extension', () => {
             output: child.execSync('pnpm test-setup').toString(),
         });
     });
-    it.only('should be able to append .js/.mjs extension for JavaScript file', async () => {
+    it('should be able to append .js/.mjs extension for JavaScript file', async () => {
         const result = await tsAddJsExtension({
             config: {
                 dir: 'test/output/js',
