@@ -1,3 +1,11 @@
+# 1.5.0 (21 May 2023)
+
+-   (Feat) remove `@typescript-eslint/typescript-estree`, just use `tsc` to produce AST and manipulate import/export
+
+# 1.4.0 (20 May 2023)
+
+-   (Feat) remove 'readline' and use raw output for log `Num. (File Updated) - (SUCCEED or FAILED)`
+
 ## 1.3.4 (15 May 2023)
 
 -   (Fix) Remove `dts` folder and create `dts` folders for `cjs` and `mjs` folder
