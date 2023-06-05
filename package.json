@@ -3,20 +3,20 @@
     "description": "Add .js or .mjs extension to each relative ESM import and export statement in JavaScript file",
     "version": "1.4.0",
     "license": "MIT",
-    "main": "build/cjs/index.js",
-    "module": "build/mjs/index.js",
-    "types": "build/cjs/index.d.ts",
-    "react-native": "build/mjs/index.js",
+    "main": "./build/cjs/index.js",
+    "module": "./build/mjs/index.js",
+    "types": "./build/cjs/index.d.ts",
+    "react-native": "./build/mjs/index.js",
     "exports": {
-        "./package.json": "package.json",
+        "./package.json": "./package.json",
         ".": {
-            "require": "build/cjs/index.js",
-            "import": "build/mjs/index.js",
-            "default": "build/mjs/index.js"
+            "require": "./build/cjs/index.js",
+            "import": "./build/mjs/index.js",
+            "default": "./build/mjs/index.js"
         }
     },
     "bin": {
-        "ts-add-js-extension": "build/cjs/bin.js"
+        "ts-add-js-extension": "./build/cjs/bin.js"
     },
     "files": [
         "build"
