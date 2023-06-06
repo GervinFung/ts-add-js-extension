@@ -1,3 +1,7 @@
+# 1.5.1 (4 June 2023)
+
+-   (Fix) add relative paths to `package.json` exports
+
 # 1.5.0 (21 May 2023)
 
 -   (Feat) remove `@typescript-eslint/typescript-estree`, just use `tsc` to produce AST and manipulate import/export

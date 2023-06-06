@@ -1,9 +1,13 @@
-lockfileVersion: '6.0'
+lockfileVersion: '6.1'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
 
 dependencies:
-  typescript:
-    specifier: ^5.0.4
-    version: 5.0.4
+  '@ast-grep/napi':
+    specifier: ^0.5.7
+    version: 0.5.7
 
 devDependencies:
   '@poolofdeath20/eslint-config':
@@ -27,6 +31,9 @@ devDependencies:
   prettier:
     specifier: ^2.8.8
     version: 2.8.8
+  typescript:
+    specifier: ^5.0.4
+    version: 5.0.4
   vite-node:
     specifier: ^0.31.1
     version: 0.31.1(@types/node@20.1.7)
@@ -35,6 +42,72 @@ devDependencies:
     version: 0.31.0
 
 packages:
+
+  /@ast-grep/napi-darwin-arm64@0.5.7:
+    resolution: {integrity: sha512-f9oQBA527T6Wx7P/apACsbDym9rZyy0zMCzrYgyxGEw9owoDL6Z+nWc5JDd7kM98zhaUBzoBHrls8xtv/xT49Q==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [darwin]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /@ast-grep/napi-darwin-x64@0.5.7:
+    resolution: {integrity: sha512-bphqeNXpxDB1CWpBEjmvFYLMRmmipmCBuQ76TjOglCdT+Pah/kJ76mCyRaYHLhW104M/9XtBi82OefS1U8OrkA==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [darwin]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /@ast-grep/napi-linux-x64-gnu@0.5.7:
+    resolution: {integrity: sha512-vpvVQ3F+2OZH3J5Au1yIijFmFVmRrYRrW2F0BW2VaBoHc+5xyCmCeEZVfitn4tZcN2WBTLaFeh2IAFDOWp1XjA==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /@ast-grep/napi-win32-arm64-msvc@0.5.7:
+    resolution: {integrity: sha512-2e8QkdMISdC/JQJ/Hm1KjWPls4saiiMF4mfpK6gUNAe/Kqy9yBAwv8YdCzz6ucO0JHR2056zAGaJvG8YgcHDtg==}
+    engines: {node: '>= 10'}
+    cpu: [arm64]
+    os: [win32]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /@ast-grep/napi-win32-ia32-msvc@0.5.7:
+    resolution: {integrity: sha512-7wOd7O3ozWkXhUVlOvxM13IPl98TefhacH9ZbriPtOFbuO+2dP+xIqh5F1CAcFfltN8r/3pZecp33hvSPccDlQ==}
+    engines: {node: '>= 10'}
+    cpu: [ia32]
+    os: [win32]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /@ast-grep/napi-win32-x64-msvc@0.5.7:
+    resolution: {integrity: sha512-u17aQUI5TtU8xCWC23ikTSQKDPfjJyXOHNIxZ1pT0v2LCfqV0hl/iwe3LKXXGPPs2+tEZVPNawV8R1l+KLSRAg==}
+    engines: {node: '>= 10'}
+    cpu: [x64]
+    os: [win32]
+    requiresBuild: true
+    dev: false
+    optional: true
+
+  /@ast-grep/napi@0.5.7:
+    resolution: {integrity: sha512-t4XEGqQDeVIJAap6+O1SykddFtruTB79++lR2oRF83f5KesE6tcQaxeJb/jkdy5atmlUx4lOjUbtNFY489oKsQ==}
+    engines: {node: '>= 10'}
+    optionalDependencies:
+      '@ast-grep/napi-darwin-arm64': 0.5.7
+      '@ast-grep/napi-darwin-x64': 0.5.7
+      '@ast-grep/napi-linux-x64-gnu': 0.5.7
+      '@ast-grep/napi-win32-arm64-msvc': 0.5.7
+      '@ast-grep/napi-win32-ia32-msvc': 0.5.7
+      '@ast-grep/napi-win32-x64-msvc': 0.5.7
+    dev: false
 
   /@babel/helper-string-parser@7.21.5:
     resolution: {integrity: sha512-5pTUx3hAJaZIdW99sJ6ZUUgWq/Y+Hja7TowEnLNMm1VivRgZQL3vpBY3qUACVsvw+yQU6+YgfBVmcbLaZtrA1w==}
@@ -2400,6 +2473,7 @@ packages:
     resolution: {integrity: sha512-cW9T5W9xY37cc+jfEnaUvX91foxtHkza3Nw3wkoF4sSlKn0MONdkdEndig/qPBWXNkmplh3NzayQzCiHM4/hqw==}
     engines: {node: '>=12.20'}
     hasBin: true
+    dev: true
 
   /ufo@1.1.2:
     resolution: {integrity: sha512-TrY6DsjTQQgyS3E3dBaOXf0TpPD8u9FVrVYmKVegJuFw51n/YB9XPt+U6ydzFG5ZIN7+DIjPbNmXoBj9esYhgQ==}
