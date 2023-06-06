@@ -107,95 +107,90 @@ const traverseAndUpdateFileWithJSExtension =
         const charactersDelimiter = '';
         const characters = sourceFile.getText().split(charactersDelimiter);
 
-        const replaceNodes = sourceFile.statements
-            .map((statement) => statement as ts.Node)
-            .flatMap((statement) => {
-                const { kind } = statement;
+        const replaceNodes = sourceFile.statements.flatMap((statement) => {
+            switch (statement.kind) {
+                case ts.SyntaxKind.ImportDeclaration:
+                case ts.SyntaxKind.ExportDeclaration: {
+                    const imExDeclaration = statement as
+                        | ts.ExportDeclaration
+                        | ts.ImportDeclaration;
 
-                switch (kind) {
-                    case ts.SyntaxKind.ImportDeclaration:
-                    case ts.SyntaxKind.ExportDeclaration: {
-                        const node = statement as
-                            | ts.ExportDeclaration
-                            | ts.ImportDeclaration;
+                    if (!imExDeclaration.moduleSpecifier) {
+                        return [];
+                    }
 
-                        if (!node.moduleSpecifier) {
-                            return [];
-                        }
+                    const moduleSpecifier: string = asString({
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
+                        value: imExDeclaration.moduleSpecifier.text,
+                        error: () =>
+                            new Error(
+                                'Module specifier of node should have text'
+                            ),
+                    });
 
-                        const moduleSpecifier: string = asString({
-                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                            // @ts-ignore
-                            value: node.moduleSpecifier.text,
-                            error: () =>
-                                new Error(
-                                    'Module specifier of node should have text'
-                                ),
+                    const delimiter = '/';
+
+                    const fileName = formProperFilePath({
+                        delimiter,
+                        filePath: !moduleSpecifier.endsWith(delimiter)
+                            ? moduleSpecifier
+                            : moduleSpecifier.slice(0, -1),
+                    })
+                        .split(delimiter)
+                        .pop();
+
+                    if (!fileName) {
+                        throw new Error(
+                            `Impossible for file name to be non-existent for ${moduleSpecifier}`
+                        );
+                    }
+
+                    if (moduleSpecifier.startsWith('.')) {
+                        const result = addJSExtension({
+                            delimiter,
+                            importPath: moduleSpecifier,
+                            filePath: path.join(
+                                sourceFile.fileName,
+                                '..',
+                                moduleSpecifier
+                            ),
                         });
 
-                        const delimiter = '/';
-
-                        const fileName = formProperFilePath({
-                            delimiter,
-                            filePath: !moduleSpecifier.endsWith(delimiter)
-                                ? moduleSpecifier
-                                : moduleSpecifier.slice(0, -1),
-                        })
-                            .split(delimiter)
-                            .pop();
-
-                        if (!fileName) {
-                            throw new Error(
-                                `Impossible for file name to be non-existent for ${moduleSpecifier}`
-                            );
-                        }
-
-                        if (moduleSpecifier.startsWith('.')) {
-                            const result = addJSExtension({
-                                delimiter,
-                                importPath: moduleSpecifier,
-                                filePath: path.join(
-                                    sourceFile.fileName,
-                                    '..',
-                                    moduleSpecifier
-                                ),
-                            });
-
-                            switch (result.procedure) {
-                                case 'proceed': {
-                                    // if file name not included in list of js file read
-                                    const { filePathImported, importPath } =
-                                        result;
-                                    if (
-                                        files.find((file) =>
-                                            file.endsWith(filePathImported)
+                        switch (result.procedure) {
+                            case 'proceed': {
+                                // if file name not included in list of js file read
+                                const { filePathImported, importPath } = result;
+                                if (
+                                    files.find((file) =>
+                                        file.endsWith(filePathImported)
+                                    )
+                                ) {
+                                    const before = characters
+                                        .filter(
+                                            (_, index) =>
+                                                index > imExDeclaration.pos &&
+                                                index < imExDeclaration.end
                                         )
-                                    ) {
-                                        const before = characters
-                                            .filter(
-                                                (_, index) =>
-                                                    index > node.pos &&
-                                                    index < node.end
-                                            )
-                                            .join(charactersDelimiter);
+                                        .join(charactersDelimiter);
 
-                                        return [
-                                            {
-                                                before,
-                                                after: before.replace(
-                                                    moduleSpecifier,
-                                                    importPath
-                                                ),
-                                            },
-                                        ];
-                                    }
+                                    return [
+                                        {
+                                            before,
+                                            after: before.replace(
+                                                moduleSpecifier,
+                                                importPath
+                                            ),
+                                        },
+                                    ];
                                 }
                             }
                         }
                     }
                 }
-                return [];
-            });
+            }
+            return [];
+        });
 
         return !replaceNodes.length
             ? []
