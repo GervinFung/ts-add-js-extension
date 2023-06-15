@@ -150,7 +150,7 @@ const traverseAndUpdateFileWithJSExtension =
                         const result = addJSExtension({
                             delimiter,
                             importPath: moduleSpecifier,
-                            filePath: path.join(
+                            filePath: path.posix.join(
                                 sourceFile.fileName,
                                 '..',
                                 moduleSpecifier
