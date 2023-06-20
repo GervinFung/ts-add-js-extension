@@ -28,8 +28,7 @@
         "build-cjs": "tsc -p tsconfig.cjs.json && shx chmod +x build/cjs/bin.js",
         "build-mjs": "tsc -p tsconfig.mjs.json && node build/cjs/bin.js --dir=build/mjs",
         "prebuild": "vite-node script/package.ts",
-        "fix-node-package-helper-bug": "node build/cjs/bin.js --dir=node_modules/node-package-helper/build && node ./fix-node-package-helper-bug.mjs",
-        "build": "pnpm prebuild && shx rm -rf build && pnpm build-cjs && pnpm build-mjs && pnpm fix-node-package-helper-bug && node-package-helper",
+        "build": "pnpm prebuild && shx rm -rf build && pnpm build-cjs && pnpm build-mjs && node-package-helper",
         "test-setup": "cd test && shx rm -rf output && shx cp -r sample output && pnpm prebuild",
         "test": "vitest"
     },
@@ -60,8 +59,5 @@
         "javascript",
         "js extension",
         "esnext"
-    ],
-    "dependencies": {
-        "@ast-grep/napi": "^0.5.7"
-    }
+    ]
 }
