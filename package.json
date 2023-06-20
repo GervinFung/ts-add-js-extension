@@ -22,9 +22,9 @@
         "build"
     ],
     "scripts": {
-        "lint": "eslint --ignore-path .gitignore src/ test/ -f='stylish' --color",
-        "format": "prettier --ignore-path .gitignore --write src/ test/",
-        "format-check": "prettier --ignore-path .gitignore --check src/ test/",
+        "lint": "pnpm vite-node script/lint.ts",
+        "format": "prettier --ignore-path .gitignore --write src test",
+        "format-check": "prettier --ignore-path .gitignore --check src test",
         "build-cjs": "tsc -p tsconfig.cjs.json && shx chmod +x build/cjs/bin.js",
         "build-mjs": "tsc -p tsconfig.mjs.json && node build/cjs/bin.js --dir=build/mjs",
         "prebuild": "vite-node script/package.ts",
