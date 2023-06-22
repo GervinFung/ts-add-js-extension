@@ -18,7 +18,7 @@ const checkJavaScriptFileExistByAppend = ({
 }: Readonly<{
     filePath: string;
 }>) => {
-    const { js, mjs } = extensionsUtil.extensions;
+    const { js, mjs } = extensionsUtil().extensions;
     const jsFile = filePath.concat(js);
     if (fs.existsSync(jsFile)) {
         return js;
@@ -56,18 +56,17 @@ const addJSExtension = ({
           filePathImported: string;
       }
 > => {
-    const { js, mjs } = extensionsUtil.extensions;
+    const { js, mjs } = extensionsUtil().extensions;
 
     const jsExtension = path.extname(filePath);
-    const isJavaScript = jsExtension === js || jsExtension === mjs;
-    if (isJavaScript) {
+    if (jsExtension === js || jsExtension === mjs) {
         return {
             procedure: 'skip',
         };
     }
     if (!isDirectory(filePath)) {
         const extension = checkJavaScriptFileExistByAppend({
-            filePath: `${filePath}`,
+            filePath,
         });
         if (!extension) {
             return {
@@ -89,6 +88,11 @@ const addJSExtension = ({
     const extension = checkJavaScriptFileExistByAppend({
         filePath: `${filePath}/index`,
     });
+    if (!extension) {
+        return {
+            procedure: 'skip',
+        };
+    }
     return {
         procedure: 'proceed',
         importPath: formProperFilePath({
@@ -119,7 +123,7 @@ const traverseAndUpdateFileWithJSExtension =
                         return [];
                     }
 
-                    const moduleSpecifier: string = asString({
+                    const moduleSpecifier = asString({
                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore
                         value: imExDeclaration.moduleSpecifier.text,

@@ -1,14 +1,22 @@
+# 1.5.3 (22 June 2023)
+
+-   (Fix) Accept token of ` ` as same level as `=`, so `--dir=build` and `--dir build` is the same
+
+# 1.5.2 (22 June 2023)
+
+-   (Fix) To be able to use on Windows
+
 # 1.5.1 (4 June 2023)
 
--   (Fix) add relative paths to `package.json` exports
+-   (Fix) Add relative paths to `package.json` exports
 
 # 1.5.0 (21 May 2023)
 
--   (Feat) remove `@typescript-eslint/typescript-estree`, just use `tsc` to produce AST and manipulate import/export
+-   (Feat) Remove `@typescript-eslint/typescript-estree`, just use `tsc` to produce AST and manipulate import/export
 
 # 1.4.0 (20 May 2023)
 
--   (Feat) remove 'readline' and use raw output for log `Num. (File Updated) - (SUCCEED or FAILED)`
+-   (Feat) Remove 'readline' and use raw output for log `Num. (File Updated) - (SUCCEED or FAILED)`
 
 ## 1.3.4 (15 May 2023)
 

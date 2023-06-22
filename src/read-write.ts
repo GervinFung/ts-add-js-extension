@@ -15,7 +15,7 @@ const getAllJSAndDTSFiles = (dir: string): Files =>
         if (fs.statSync(filePath).isDirectory()) {
             return getAllJSAndDTSFiles(filePath);
         }
-        return !extensionsUtil.matchAny(filePath) ? [] : [filePath];
+        return !extensionsUtil().matchAny(filePath) ? [] : [filePath];
     });
 
 const readCode = (files: string): Promise<string> =>
@@ -28,10 +28,9 @@ const readCode = (files: string): Promise<string> =>
     });
 
 const getAllJSAndDTSCodes = (files: Files) =>
-    files.map(async (file) => {
-        const code = await readCode(file);
-        return ts.createSourceFile(file, code, ts.ScriptTarget.ESNext);
-    });
+    files.map(async (file) =>
+        ts.createSourceFile(file, await readCode(file), ts.ScriptTarget.ESNext)
+    );
 
 export default class File {
     private constructor() {}
@@ -65,7 +64,7 @@ export default class File {
         const repeat = withJSExtension.reduce(
             (longestFileName, { file }) =>
                 longestFileName?.length <= file.length ? file : longestFileName,
-            '' as string
+            ''
         ).length;
 
         const log = !(withJSExtension.length && showChanges)

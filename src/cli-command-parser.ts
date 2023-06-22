@@ -56,8 +56,10 @@ class TokenParser {
         } as const;
     };
 
+    readonly delimiter = () => (this.token.includes('=') ? '=' : ' ');
+
     readonly parseDir = () => {
-        const [dirWord, dirTarget] = this.token.split('=');
+        const [dirWord, dirTarget] = this.token.split(this.delimiter());
 
         if (dirWord !== commandKeyWords.dir.keyword) {
             return {
@@ -79,7 +81,7 @@ class TokenParser {
     };
 
     readonly parseInclude = () => {
-        const [includeWord, includeTarget] = this.token.split('=');
+        const [includeWord, includeTarget] = this.token.split(this.delimiter());
 
         if (includeWord !== commandKeyWords.include.keyword) {
             return {
@@ -101,7 +103,7 @@ class TokenParser {
     };
 
     readonly processShowChanges = () => {
-        const [includeWord, includeTarget] = this.token.split('=');
+        const [includeWord, includeTarget] = this.token.split(this.delimiter());
 
         if (includeWord !== commandKeyWords.showChanges.keyword) {
             return {
@@ -141,7 +143,7 @@ export default class ParseArgs {
         }
 
         if (tokens.includes('add')) {
-            console.warn(
+            console.log(
                 'The "add" in the command can be removed, as it is only used for backward compatibility'
             );
         }

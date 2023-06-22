@@ -1,20 +1,21 @@
-const extensions = {
-    js: '.js',
-    mjs: '.mjs',
-    dts: '.d.ts',
-} as const;
+const extensionsUtil = () => {
+    const extensions = {
+        js: '.js',
+        mjs: '.mjs',
+        dts: '.d.ts',
+    } as const;
 
-const extensionsUtil = new (class {
-    readonly extensions = extensions;
+    const arrayfyExtensions = Object.values(extensions);
 
-    readonly arrayfyExtensions = Object.values(this.extensions);
-
-    readonly matchAny = (filePath: string) =>
-        Boolean(
-            this.arrayfyExtensions.find((extension) =>
-                filePath.endsWith(extension)
-            )
-        );
-})();
+    return {
+        extensions,
+        matchAny: (filePath: string) =>
+            Boolean(
+                arrayfyExtensions.find((extension) =>
+                    filePath.endsWith(extension)
+                )
+            ),
+    } as const;
+};
 
 export { extensionsUtil };
