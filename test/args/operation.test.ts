@@ -7,15 +7,6 @@ describe('Operation arguments parsing', () => {
     it.each(delimiter)(
         'should parse config when all options are given and "add" is absent',
         (delimiter) => {
-            console.log(
-                [
-                    'node',
-                    'ts-add-js-extension',
-                    `--dir${delimiter}build/mjs`,
-                    `--include${delimiter}build/dts`,
-                    `--showchanges${delimiter}true`,
-                ].join(' ')
-            );
             expect(
                 ParseArgs.create([
                     'node',
