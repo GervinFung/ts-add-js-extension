@@ -22,7 +22,7 @@ devDependencies:
     version: 8.40.0
   node-package-helper:
     specifier: github:GervinFung/node-package-helper
-    version: github.com/GervinFung/node-package-helper/cbf9a844762eaa6f46e99ed5891c9d079d7f0f14
+    version: github.com/GervinFung/node-package-helper/b53f81c0fa827e4a0d6b622dbfe1b79d126a8a1f
   prettier:
     specifier: ^2.8.8
     version: 2.8.8
@@ -40,72 +40,6 @@ devDependencies:
     version: 0.31.0
 
 packages:
-
-  /@ast-grep/napi-darwin-arm64@0.5.7:
-    resolution: {integrity: sha512-f9oQBA527T6Wx7P/apACsbDym9rZyy0zMCzrYgyxGEw9owoDL6Z+nWc5JDd7kM98zhaUBzoBHrls8xtv/xT49Q==}
-    engines: {node: '>= 10'}
-    cpu: [arm64]
-    os: [darwin]
-    requiresBuild: true
-    dev: true
-    optional: true
-
-  /@ast-grep/napi-darwin-x64@0.5.7:
-    resolution: {integrity: sha512-bphqeNXpxDB1CWpBEjmvFYLMRmmipmCBuQ76TjOglCdT+Pah/kJ76mCyRaYHLhW104M/9XtBi82OefS1U8OrkA==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [darwin]
-    requiresBuild: true
-    dev: true
-    optional: true
-
-  /@ast-grep/napi-linux-x64-gnu@0.5.7:
-    resolution: {integrity: sha512-vpvVQ3F+2OZH3J5Au1yIijFmFVmRrYRrW2F0BW2VaBoHc+5xyCmCeEZVfitn4tZcN2WBTLaFeh2IAFDOWp1XjA==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [linux]
-    requiresBuild: true
-    dev: true
-    optional: true
-
-  /@ast-grep/napi-win32-arm64-msvc@0.5.7:
-    resolution: {integrity: sha512-2e8QkdMISdC/JQJ/Hm1KjWPls4saiiMF4mfpK6gUNAe/Kqy9yBAwv8YdCzz6ucO0JHR2056zAGaJvG8YgcHDtg==}
-    engines: {node: '>= 10'}
-    cpu: [arm64]
-    os: [win32]
-    requiresBuild: true
-    dev: true
-    optional: true
-
-  /@ast-grep/napi-win32-ia32-msvc@0.5.7:
-    resolution: {integrity: sha512-7wOd7O3ozWkXhUVlOvxM13IPl98TefhacH9ZbriPtOFbuO+2dP+xIqh5F1CAcFfltN8r/3pZecp33hvSPccDlQ==}
-    engines: {node: '>= 10'}
-    cpu: [ia32]
-    os: [win32]
-    requiresBuild: true
-    dev: true
-    optional: true
-
-  /@ast-grep/napi-win32-x64-msvc@0.5.7:
-    resolution: {integrity: sha512-u17aQUI5TtU8xCWC23ikTSQKDPfjJyXOHNIxZ1pT0v2LCfqV0hl/iwe3LKXXGPPs2+tEZVPNawV8R1l+KLSRAg==}
-    engines: {node: '>= 10'}
-    cpu: [x64]
-    os: [win32]
-    requiresBuild: true
-    dev: true
-    optional: true
-
-  /@ast-grep/napi@0.5.7:
-    resolution: {integrity: sha512-t4XEGqQDeVIJAap6+O1SykddFtruTB79++lR2oRF83f5KesE6tcQaxeJb/jkdy5atmlUx4lOjUbtNFY489oKsQ==}
-    engines: {node: '>= 10'}
-    optionalDependencies:
-      '@ast-grep/napi-darwin-arm64': 0.5.7
-      '@ast-grep/napi-darwin-x64': 0.5.7
-      '@ast-grep/napi-linux-x64-gnu': 0.5.7
-      '@ast-grep/napi-win32-arm64-msvc': 0.5.7
-      '@ast-grep/napi-win32-ia32-msvc': 0.5.7
-      '@ast-grep/napi-win32-x64-msvc': 0.5.7
-    dev: true
 
   /@babel/helper-string-parser@7.21.5:
     resolution: {integrity: sha512-5pTUx3hAJaZIdW99sJ6ZUUgWq/Y+Hja7TowEnLNMm1VivRgZQL3vpBY3qUACVsvw+yQU6+YgfBVmcbLaZtrA1w==}
@@ -2397,11 +2331,9 @@ packages:
       is-number: 7.0.0
     dev: true
 
-  /ts-add-js-extension@1.5.1:
-    resolution: {integrity: sha512-qxb60aLtATinrzlXOMHJLdDsUYTPKUWcwuqzOEzlr/dG0lzdsHcamovxEFhknMyRpHJaDNpaRxzAauXee7/Whg==}
+  /ts-add-js-extension@1.5.2:
+    resolution: {integrity: sha512-J5EPvVU7tqpUzktzsbkpo9iDhmqEcU6KOjMFc2ZXCWcU0DdXYlqHoJLhXPP/43oO7R17Vlegb6sp9pn0wErZVg==}
     hasBin: true
-    dependencies:
-      '@ast-grep/napi': 0.5.7
     dev: true
 
   /tsconfig-paths@3.14.2:
@@ -2693,14 +2625,14 @@ packages:
     engines: {node: '>=12.20'}
     dev: true
 
-  github.com/GervinFung/node-package-helper/cbf9a844762eaa6f46e99ed5891c9d079d7f0f14:
-    resolution: {tarball: https://codeload.github.com/GervinFung/node-package-helper/tar.gz/cbf9a844762eaa6f46e99ed5891c9d079d7f0f14}
+  github.com/GervinFung/node-package-helper/b53f81c0fa827e4a0d6b622dbfe1b79d126a8a1f:
+    resolution: {tarball: https://codeload.github.com/GervinFung/node-package-helper/tar.gz/b53f81c0fa827e4a0d6b622dbfe1b79d126a8a1f}
     name: node-package-helper
-    version: 0.1.4
+    version: 0.1.5
     hasBin: true
     requiresBuild: true
     dependencies:
       shx: 0.3.4
-      ts-add-js-extension: 1.5.1
+      ts-add-js-extension: 1.5.2
       typescript: 5.0.4
     dev: true
