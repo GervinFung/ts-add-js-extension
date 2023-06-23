@@ -56,10 +56,7 @@ const addJSExtension = ({
           filePathImported: string;
       }
 > => {
-    const { js, mjs } = extensionsUtil().extensions;
-
-    const jsExtension = path.extname(filePath);
-    if (jsExtension === js || jsExtension === mjs) {
+    if (extensionsUtil().matchAnyJs(filePath)) {
         return {
             procedure: 'skip',
         };

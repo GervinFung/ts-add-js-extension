@@ -5,16 +5,20 @@ describe('Operation arguments parsing', () => {
     const delimiter = ['=', ' '] as const;
 
     it.each(delimiter)(
-        'should parse config when all options are given and "add" is absent',
+        'should parse config when all options are given with assignment of %s and "add" is absent',
         (delimiter) => {
             expect(
-                ParseArgs.create([
-                    'node',
-                    'ts-add-js-extension',
-                    `--dir${delimiter}build/mjs`,
-                    `--include${delimiter}build/dts`,
-                    `--showchanges${delimiter}true`,
-                ]).asOperation()
+                ParseArgs.create(
+                    [
+                        'node',
+                        'ts-add-js-extension',
+                        `--dir${delimiter}build/mjs`,
+                        `--include${delimiter}build/dts`,
+                        `--showchanges${delimiter}true`,
+                    ]
+                        .join(' ')
+                        .split(' ')
+                ).asOperation()
             ).toStrictEqual({
                 dir: 'build/mjs',
                 include: ['build/dts'],
@@ -23,15 +27,19 @@ describe('Operation arguments parsing', () => {
         }
     );
     it.each(delimiter)(
-        'should parse config when optional options are absent',
+        'should parse config when optional options are absent with assignment of %s',
         (delimiter) => {
             expect(
-                ParseArgs.create([
-                    'node',
-                    'ts-add-js-extension',
-                    'add',
-                    `--dir${delimiter}build/mjs`,
-                ]).asOperation()
+                ParseArgs.create(
+                    [
+                        'node',
+                        'ts-add-js-extension',
+                        'add',
+                        `--dir${delimiter}build/mjs`,
+                    ]
+                        .join(' ')
+                        .split(' ')
+                ).asOperation()
             ).toStrictEqual({
                 dir: 'build/mjs',
                 include: undefined,
