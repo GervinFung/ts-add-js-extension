@@ -9,6 +9,12 @@ const extensionsUtil = () => {
 
     return {
         extensions,
+        matchAnyJs: (filePath: string) =>
+            Boolean(
+                arrayfyExtensions
+                    .filter((extension) => extension !== '.d.ts')
+                    .find((extension) => filePath.endsWith(extension))
+            ),
         matchAny: (filePath: string) =>
             Boolean(
                 arrayfyExtensions.find((extension) =>

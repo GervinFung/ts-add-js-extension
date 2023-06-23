@@ -25,6 +25,9 @@ const commandKeyWords = {
         keyword: '--showchanges',
         reason: 'The function showchanges is deprecated in favor of `showprorgess`',
     },
+    assignment: {
+        assign: '=',
+    },
 } as const;
 
 class TokenParser {
@@ -56,10 +59,10 @@ class TokenParser {
         } as const;
     };
 
-    readonly delimiter = () => (this.token.includes('=') ? '=' : ' ');
-
     readonly parseDir = () => {
-        const [dirWord, dirTarget] = this.token.split(this.delimiter());
+        const [dirWord, dirTarget] = this.token.split(
+            commandKeyWords.assignment.assign
+        );
 
         if (dirWord !== commandKeyWords.dir.keyword) {
             return {
@@ -81,7 +84,9 @@ class TokenParser {
     };
 
     readonly parseInclude = () => {
-        const [includeWord, includeTarget] = this.token.split(this.delimiter());
+        const [includeWord, includeTarget] = this.token.split(
+            commandKeyWords.assignment.assign
+        );
 
         if (includeWord !== commandKeyWords.include.keyword) {
             return {
@@ -103,7 +108,9 @@ class TokenParser {
     };
 
     readonly processShowChanges = () => {
-        const [includeWord, includeTarget] = this.token.split(this.delimiter());
+        const [includeWord, includeTarget] = this.token.split(
+            commandKeyWords.assignment.assign
+        );
 
         if (includeWord !== commandKeyWords.showChanges.keyword) {
             return {
@@ -133,8 +140,16 @@ class TokenParser {
     };
 }
 
+type Tokens = ReadonlyArray<string>;
+
 export default class ParseArgs {
-    private constructor(private readonly tokens: ReadonlyArray<string>) {}
+    private constructor(private readonly tokens: Tokens) {
+        this.tokens = ParseArgs.purifyTokens(tokens);
+        console.log({
+            tokens,
+            t: this.tokens,
+        });
+    }
 
     static readonly create = (tokens: ReadonlyArray<string>) => {
         const name = ParseArgs.checkPackageName(tokens.at(1));
@@ -161,11 +176,28 @@ export default class ParseArgs {
                   error: new Error(`The pkg name "${name}" passed is invalid`),
               };
 
+    private static readonly purifyTokens = (tokens: Tokens) =>
+        tokens.map((token) => (token === 'add' ? '' : token)).filter(Boolean);
+
+    private readonly unifyAssignment = () =>
+        this.tokens.flatMap((args, index, self) => {
+            const { assign } = commandKeyWords.assignment;
+            if (args.startsWith('--')) {
+                if (args.includes(assign)) {
+                    return [args];
+                }
+                const next = self.at(index + 1);
+                if (next && !next?.startsWith('--')) {
+                    return [`${args}${assign}${next}`];
+                }
+            }
+            return [];
+        });
+
     readonly asVersion = () => {
         type ParseVersion = ReturnType<TokenParser['parseVersion']>;
-        const purifiedTokens = this.tokens;
 
-        const version = purifiedTokens.reduce(
+        const version = this.tokens.reduce(
             (result, token) => {
                 if (result?.status === 'yes') {
                     return result;
@@ -189,10 +221,9 @@ export default class ParseArgs {
 
     readonly asHelp = () => {
         type ParseHelp = ReturnType<TokenParser['parseHelp']>;
-        const purifiedTokens = this.tokens;
 
         const help =
-            purifiedTokens.length === 1
+            this.tokens.length === 1
                 ? ({
                       status: 'yes',
                       type: 'help',
@@ -200,7 +231,7 @@ export default class ParseArgs {
                           encoding: 'utf-8',
                       }),
                   } as ParseHelp)
-                : purifiedTokens.reduce(
+                : this.tokens.reduce(
                       (result, token) => {
                           if (result?.status === 'yes') {
                               return result;
@@ -223,12 +254,7 @@ export default class ParseArgs {
     };
 
     readonly asOperation = () => {
-        const purifiedTokens = this.tokens
-            .map((token) => (token === 'add' ? '' : token))
-            .filter(Boolean)
-            .filter((_, index) => index);
-
-        const processedToken = purifiedTokens.map((token) => {
+        const processedToken = this.unifyAssignment().map((token) => {
             const parser = new TokenParser(token);
             const dir = parser.parseDir();
             if (dir.status === 'yes') {
@@ -248,7 +274,7 @@ export default class ParseArgs {
         processedToken
             .flatMap((node) => (node.status !== 'invalid' ? [] : [node]))
             .forEach((node) =>
-                console.warn(
+                console.log(
                     `The "${node.token}" in the command is invalid as ${node.reason}. So please remove it`
                 )
             );
