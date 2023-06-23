@@ -145,10 +145,6 @@ type Tokens = ReadonlyArray<string>;
 export default class ParseArgs {
     private constructor(private readonly tokens: Tokens) {
         this.tokens = ParseArgs.purifyTokens(tokens);
-        console.log({
-            tokens,
-            t: this.tokens,
-        });
     }
 
     static readonly create = (tokens: ReadonlyArray<string>) => {
