@@ -4,17 +4,20 @@ import ParseArgs from '../../src/cli-command-parser';
 
 describe('Help argument parsing', () => {
     const result = {
-        proceed: true,
-        guide: fs.readFileSync('public/help.md', { encoding: 'utf-8' }),
+        exists: true,
+        type: 'help',
+        value: fs.readFileSync('public/help.md', { encoding: 'utf-8' }),
     };
     it('should parse config as help when help argument is absent', () => {
         expect(
-            ParseArgs.create(['node', 'ts-add-js-extension']).asHelp()
+            ParseArgs.create(['node', 'ts-add-js-extension'].join(' ')).asHelp()
         ).toStrictEqual(result);
     });
     it('should parse config as help when help argument is given', () => {
         expect(
-            ParseArgs.create(['node', 'ts-add-js-extension', '--help']).asHelp()
+            ParseArgs.create(
+                ['node', 'ts-add-js-extension', '--help'].join(' ')
+            ).asHelp()
         ).toStrictEqual(result);
     });
 });
