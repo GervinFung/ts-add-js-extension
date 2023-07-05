@@ -47,17 +47,17 @@ const tsAddJsExtension = async ({
     });
 };
 
-const main = (args: ReadonlyArray<string>) => {
+const main = (args: string) => {
     const parser = ParseArgs.create(args);
     const help = parser.asHelp();
 
-    if (help.proceed) {
-        return console.log(help.guide);
+    if (help.exists) {
+        return console.log(help.value);
     }
 
     const version = parser.asVersion();
 
-    if (version.proceed) {
+    if (version.exists) {
         return console.log(version.value);
     }
 

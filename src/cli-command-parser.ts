@@ -5,150 +5,146 @@ import pkg from './package';
 const commandKeyWords = {
     help: {
         isMandatory: false,
-        keyword: '--help',
+        keyword: 'help',
     },
     version: {
         isMandatory: false,
-        keyword: '--version',
+        keyword: 'version',
     },
     dir: {
         isMandatory: true,
-        keyword: '--dir',
+        keyword: 'dir',
     },
     include: {
         isMandatory: false,
-        keyword: '--include',
+        keyword: 'include',
     },
     showChanges: {
         type: 'deprecated',
         isMandatory: false,
-        keyword: '--showchanges',
+        keyword: 'showchanges',
         reason: 'The function showchanges is deprecated in favor of `showprorgess`',
     },
     assignment: {
         assign: '=',
+        key: '--',
     },
 } as const;
 
 class TokenParser {
-    constructor(private readonly token: string) {}
+    constructor(private readonly token: Token) {}
 
     readonly parseVersion = () => {
-        if (this.token !== commandKeyWords.version.keyword) {
+        const { keyword } = commandKeyWords.version;
+        if (this.token.key !== keyword) {
             return {
-                status: 'no',
+                exists: false,
             } as const;
         }
         return {
-            status: 'yes',
-            type: 'version',
+            type: keyword,
+            exists: true,
             value: pkg.version,
         } as const;
     };
 
     readonly parseHelp = () => {
-        if (this.token !== commandKeyWords.help.keyword) {
+        const { keyword } = commandKeyWords.help;
+        if (this.token.key !== commandKeyWords.help.keyword) {
             return {
-                status: 'no',
+                exists: false,
             } as const;
         }
         return {
-            status: 'yes',
-            type: 'help',
+            type: keyword,
+            exists: true,
             value: fs.readFileSync('public/help.md', { encoding: 'utf-8' }),
         } as const;
     };
 
     readonly parseDir = () => {
-        const [dirWord, dirTarget] = this.token.split(
-            commandKeyWords.assignment.assign
-        );
-
-        if (dirWord !== commandKeyWords.dir.keyword) {
+        const { keyword } = commandKeyWords.dir;
+        if (this.token.key !== commandKeyWords.dir.keyword) {
             return {
-                status: 'no',
+                exists: false,
             } as const;
         }
 
         return {
-            status: 'yes',
-            type: 'dir',
+            type: keyword,
+            exists: true,
             value: guard({
-                value: dirTarget,
-                error: () =>
-                    new Error(
-                        `There is no directory to target since ${dirWord}={empty}`
-                    ),
+                value: this.token.value.split(' ').at(0),
+                error: new Error(
+                    'There must be at least one element in values for dir'
+                ),
             }),
         } as const;
     };
 
     readonly parseInclude = () => {
-        const [includeWord, includeTarget] = this.token.split(
-            commandKeyWords.assignment.assign
-        );
-
-        if (includeWord !== commandKeyWords.include.keyword) {
+        const { keyword } = commandKeyWords.include;
+        if (this.token.key !== commandKeyWords.include.keyword) {
             return {
-                status: 'no',
+                exists: false,
             } as const;
         }
 
         return {
-            status: 'yes',
-            type: 'include',
-            value: guard({
-                value: includeTarget,
-                error: () =>
-                    new Error(
-                        `There is no include directories to target since ${includeWord}={empty}`
-                    ),
-            }).split(','),
+            type: keyword,
+            exists: true,
+            value: this.token.value.split(' '),
         } as const;
     };
 
-    readonly processShowChanges = () => {
-        const [includeWord, includeTarget] = this.token.split(
-            commandKeyWords.assignment.assign
-        );
-
-        if (includeWord !== commandKeyWords.showChanges.keyword) {
+    readonly parseShowChanges = () => {
+        const { keyword } = commandKeyWords.showChanges;
+        const { key, value } = this.token;
+        if (key !== commandKeyWords.showChanges.keyword) {
             return {
-                status: 'no',
+                exists: false,
             } as const;
         }
 
-        if (includeTarget === 'true' || includeTarget === 'false') {
+        if (value === 'true' || value === 'false') {
             return {
-                status: 'yes',
-                type: 'showChanges',
-                value: JSON.parse(includeTarget) as boolean,
+                type: keyword,
+                exists: true,
+                value: JSON.parse(value) as boolean,
             } as const;
         }
 
         throw new Error(
-            `${includeWord}=${includeTarget} is invalid, it can only receive boolean value`
+            `${key}=${value} is invalid, it can only receive boolean value`
         );
     };
 
     readonly processNonRecognisableToken = () => {
         return {
-            status: 'invalid',
+            type: 'invalid',
             reason: 'then token cannot be recognized',
             token: this.token,
         } as const;
     };
 }
 
-type Tokens = ReadonlyArray<string>;
+type Args = ReadonlyArray<string>;
+
+type Token = Readonly<{
+    key: string;
+    value: string;
+}>;
 
 export default class ParseArgs {
-    private constructor(private readonly tokens: Tokens) {
-        this.tokens = ParseArgs.purifyTokens(tokens);
+    private readonly tokens: ReadonlyArray<Token>;
+
+    private constructor(args: Args) {
+        this.tokens = this.tokenize(args);
     }
 
-    static readonly create = (tokens: ReadonlyArray<string>) => {
-        const name = ParseArgs.checkPackageName(tokens.at(1));
+    static readonly create = (arg: string) => {
+        const tokens = arg.split(commandKeyWords.assignment.key);
+        const name = ParseArgs.checkPackageName(tokens.at(0));
         if (name !== 'proceed') {
             throw name.error;
         }
@@ -172,103 +168,88 @@ export default class ParseArgs {
                   error: new Error(`The pkg name "${name}" passed is invalid`),
               };
 
-    private static readonly purifyTokens = (tokens: Tokens) =>
-        tokens.map((token) => (token === 'add' ? '' : token)).filter(Boolean);
+    private readonly tokenize = (args: Args) => {
+        const { assign } = commandKeyWords.assignment;
 
-    private readonly unifyAssignment = () =>
-        this.tokens.flatMap((args, index, self) => {
-            const { assign } = commandKeyWords.assignment;
-            if (args.startsWith('--')) {
-                if (args.includes(assign)) {
-                    return [args];
+        return args
+            .flatMap((arg) => {
+                if (arg.includes(assign)) {
+                    return [arg];
                 }
-                const next = self.at(index + 1);
-                if (next && !next?.startsWith('--')) {
-                    return [`${args}${assign}${next}`];
-                }
-            }
-            return [];
-        });
 
-    readonly asVersion = () => {
-        type ParseVersion = ReturnType<TokenParser['parseVersion']>;
+                const [key, ...value] = arg.split(' ');
+                return [`${key}${assign}${value.join(' ')}`];
+            })
+            .map((args): Token => {
+                const [key, value] = args.split(assign);
 
-        const version = this.tokens.reduce(
+                return {
+                    key: guard({
+                        value: key,
+                        error: new Error(
+                            'Key cannot be undefined after being flat mapped'
+                        ),
+                    }),
+                    value: guard({
+                        value,
+                        error: new Error(
+                            'Value cannot be undefined after being flat mapped'
+                        ),
+                    }).trim(),
+                };
+            });
+    };
+
+    readonly asVersion = () =>
+        this.tokens.reduce(
             (result, token) => {
-                if (result?.status === 'yes') {
+                if (result.exists) {
                     return result;
                 }
                 return new TokenParser(token).parseVersion();
             },
-            { status: 'no' } as ParseVersion
+            { exists: false } as ReturnType<TokenParser['parseVersion']>
         );
 
-        if (version.status === 'no') {
+    readonly asHelp = (): ReturnType<TokenParser['parseHelp']> => {
+        if (!this.tokens.length) {
             return {
-                proceed: false,
-            } as const;
+                type: 'help',
+                exists: true,
+                value: fs.readFileSync('public/help.md', { encoding: 'utf-8' }),
+            };
         }
-
-        return {
-            proceed: true,
-            value: version.value,
-        } as const;
-    };
-
-    readonly asHelp = () => {
-        type ParseHelp = ReturnType<TokenParser['parseHelp']>;
-
-        const help =
-            this.tokens.length === 1
-                ? ({
-                      status: 'yes',
-                      type: 'help',
-                      value: fs.readFileSync('public/help.md', {
-                          encoding: 'utf-8',
-                      }),
-                  } as ParseHelp)
-                : this.tokens.reduce(
-                      (result, token) => {
-                          if (result?.status === 'yes') {
-                              return result;
-                          }
-                          return new TokenParser(token).parseHelp();
-                      },
-                      { status: 'no' } as ParseHelp
-                  );
-
-        if (help.status === 'no') {
-            return {
-                proceed: false,
-            } as const;
-        }
-
-        return {
-            proceed: true,
-            guide: help.value,
-        } as const;
+        return this.tokens.reduce(
+            (result, token) => {
+                if (result.exists) {
+                    return result;
+                }
+                return new TokenParser(token).parseHelp();
+            },
+            { exists: false } as ReturnType<TokenParser['parseHelp']>
+        );
     };
 
     readonly asOperation = () => {
-        const processedToken = this.unifyAssignment().map((token) => {
+        const processedToken = this.tokens.map((token) => {
             const parser = new TokenParser(token);
             const dir = parser.parseDir();
-            if (dir.status === 'yes') {
+            if (dir.exists) {
                 return dir;
             }
             const include = parser.parseInclude();
-            if (include.status === 'yes') {
+            if (include.exists) {
                 return include;
             }
-            const showChanges = parser.processShowChanges();
-            if (showChanges.status === 'yes') {
+            const showChanges = parser.parseShowChanges();
+            if (showChanges.exists) {
                 return showChanges;
             }
             return parser.processNonRecognisableToken();
         });
 
         processedToken
-            .flatMap((node) => (node.status !== 'invalid' ? [] : [node]))
+            .flatMap((node) => (node.type !== 'invalid' ? [] : [node]))
             .forEach((node) =>
                 console.log(
                     `The "${node.token}" in the command is invalid as ${node.reason}. So please remove it`
@@ -276,25 +257,22 @@ export default class ParseArgs {
             );
 
         const nodes = processedToken.flatMap((node) =>
-            node.status !== 'yes' ? [] : [node]
+            node.type === 'invalid' ? [] : [node]
         );
 
         return {
             dir: guard({
                 value: nodes.find((node) => node.type === 'dir')
                     ?.value as ReturnType<TokenParser['parseDir']>['value'],
-                error: () =>
-                    new Error(
-                        'dir is a mandatory field, it should be present to know which dir it should operate on'
-                    ),
+                error: new Error(
+                    'dir is a mandatory field, it should be present to know which dir it should operate on'
+                ),
             }),
             // optional
             include: nodes.find((node) => node.type === 'include')
                 ?.value as ReturnType<TokenParser['parseInclude']>['value'],
-            showChanges: nodes.find((node) => node.type === 'showChanges')
-                ?.value as ReturnType<
-                TokenParser['processShowChanges']
-            >['value'],
+            showChanges: nodes.find((node) => node.type === 'showchanges')
+                ?.value as ReturnType<TokenParser['parseShowChanges']>['value'],
         } as const;
     };
 }

@@ -3,13 +3,13 @@ const guard = <T, Err extends Error>({
     error,
 }: Readonly<{
     value: T;
-    error: () => Err;
+    error: Err;
 }>) => {
     const t = value;
     if (t !== undefined && t != null) {
         return t;
     }
-    throw error();
+    throw error;
 };
 
 const asString = ({ value, error }: Parameters<typeof guard>[0]) => {
@@ -17,7 +17,7 @@ const asString = ({ value, error }: Parameters<typeof guard>[0]) => {
     if (typeof s === 'string') {
         return s;
     }
-    throw error();
+    throw error;
 };
 
 export { guard, asString };

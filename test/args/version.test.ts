@@ -5,16 +5,16 @@ import pkg from '../../package.json';
 describe('Version argument parsing', () => {
     it('should parse config as help when help argument is absent', () => {
         expect(
-            ParseArgs.create(['node', 'ts-add-js-extension']).asVersion()
-        ).toStrictEqual({ proceed: false });
+            ParseArgs.create(
+                ['node', 'ts-add-js-extension'].join(' ')
+            ).asVersion()
+        ).toStrictEqual({ exists: false });
     });
     it('should parse config as help when help argument is given', () => {
         expect(
-            ParseArgs.create([
-                'node',
-                'ts-add-js-extension',
-                '--version',
-            ]).asVersion()
-        ).toStrictEqual({ proceed: true, value: pkg.version });
+            ParseArgs.create(
+                ['node', 'ts-add-js-extension', '--version'].join(' ')
+            ).asVersion()
+        ).toStrictEqual({ type: 'version', exists: true, value: pkg.version });
     });
 });

@@ -1,3 +1,3 @@
 #!/usr/bin/env node
 import main from './';
-main(process.argv);
+main(process.argv.join(' '));

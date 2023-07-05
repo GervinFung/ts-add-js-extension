@@ -13,15 +13,13 @@ describe('Operation arguments parsing', () => {
                         'node',
                         'ts-add-js-extension',
                         `--dir${delimiter}build/mjs`,
-                        `--include${delimiter}build/dts`,
+                        `--include${delimiter}build/dts build/js test`,
                         `--showchanges${delimiter}true`,
-                    ]
-                        .join(' ')
-                        .split(' ')
+                    ].join(' ')
                 ).asOperation()
             ).toStrictEqual({
                 dir: 'build/mjs',
-                include: ['build/dts'],
+                include: ['build/dts', 'build/js', 'test'],
                 showChanges: true,
             });
         }
@@ -36,9 +34,7 @@ describe('Operation arguments parsing', () => {
                         'ts-add-js-extension',
                         'add',
                         `--dir${delimiter}build/mjs`,
-                    ]
-                        .join(' ')
-                        .split(' ')
+                    ].join(' ')
                 ).asOperation()
             ).toStrictEqual({
                 dir: 'build/mjs',
@@ -49,13 +45,15 @@ describe('Operation arguments parsing', () => {
     );
     it('should parse config and throw error when mandatory options are absent', () => {
         expect(() =>
-            ParseArgs.create([
-                'node',
-                'ts-add-js-extension',
-                'add',
-                '--include=build/dts',
-                '--showchanges=true',
-            ]).asOperation()
+            ParseArgs.create(
+                [
+                    'node',
+                    'ts-add-js-extension',
+                    'add',
+                    '--include=build/dts',
+                    '--showchanges=true',
+                ].join(' ')
+            ).asOperation()
         ).toThrowError();
     });
 });
