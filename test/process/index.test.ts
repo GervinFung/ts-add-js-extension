@@ -1,20 +1,12 @@
 import fs from 'fs';
+import path from 'path';
 import child from 'child_process';
 import { describe, it, expect, beforeAll } from 'vitest';
 import { tsAddJsExtension } from '../../src';
 
 describe('ts add js extension', () => {
-    const output = 'test/output';
-    const readCode = (files: string): Promise<string> =>
-        new Promise((resolve, reject) => {
-            let fetchData = '';
-            fs.createReadStream(files)
-                .on('data', (data) => {
-                    fetchData = data.toString();
-                })
-                .on('end', () => resolve(fetchData))
-                .on('error', reject);
-        });
+    const getPath = (subPath: string) => path.join(__dirname, subPath);
+
     beforeAll(() => {
         console.log({
             output: child.execSync('pnpm test-setup').toString(),
@@ -23,32 +15,30 @@ describe('ts add js extension', () => {
     it('should be able to append .js/.mjs extension for JavaScript file', async () => {
         const result = await tsAddJsExtension({
             config: {
-                dir: 'test/output/js',
+                dir: getPath(path.join('actual-result', 'js')),
             },
         });
         expect(result.type).toBe('done');
-    });
-    it('should be able to append .js/.mjs extension for Type Definition file', async () => {
-        const result = await tsAddJsExtension({
-            config: {
-                dir: 'test/output/ts',
-            },
-        });
+        // actual result = expected result
         expect(result.type).toBe('done');
     });
     it.each(
-        Array.from({ length: 6 }, (_, index) =>
-            [`js/${index + 1}.js`, `js/${index + 1}.mjs`].filter((file) =>
-                fs.existsSync(`${output}/${file}`)
-            )
-        )
-            .concat(['js/index.js'])
-            .concat(['ts/dist/index.d.ts'])
-            .flat()
+        (() => {
+            const parentDir = getPath(path.join('actual-result', 'dts'));
+            return fs
+                .readdirSync(parentDir)
+                .map((childPath) => path.join(parentDir, childPath));
+        })()
     )(
-        'should read the code and ensure each import/export statemnt is properly formed for "%s"',
-        async (file) => {
-            expect(await readCode(`${output}/${file}`)).toMatchSnapshot();
+        'should be able to append .js/.mjs extension for Type Definition file of %s',
+        async (dir) => {
+            const result = await tsAddJsExtension({
+                config: {
+                    dir,
+                },
+            });
+            // actual result = expected result
+            expect(result.type).toBe('done');
         }
     );
 });

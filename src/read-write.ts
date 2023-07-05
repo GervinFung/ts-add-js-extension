@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path'
 import ts from 'typescript';
 import type { PartialConfig } from './cli-command-parser';
 import traverseAndUpdateFileWithJSExtension from './traverse-and-update';
@@ -11,7 +12,7 @@ type Files = ReadonlyArray<string>;
 
 const getAllJSAndDTSFiles = (dir: string): Files =>
     fs.readdirSync(dir).flatMap((file) => {
-        const filePath = `${dir}/${file}`;
+        const filePath = path.join(dir, file);
         if (fs.statSync(filePath).isDirectory()) {
             return getAllJSAndDTSFiles(filePath);
         }

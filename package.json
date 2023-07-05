@@ -29,7 +29,7 @@
         "build-mjs": "tsc -p tsconfig.mjs.json && node build/cjs/bin.js --dir build/mjs",
         "prebuild": "vite-node script/package.ts",
         "build": "pnpm prebuild && shx rm -rf build && pnpm build-cjs && pnpm build-mjs && node-package-helper",
-        "test-setup": "cd test && shx rm -rf output && shx cp -r sample output && pnpm prebuild",
+        "test-setup": "cd test/process && shx rm -rf actual-result && shx cp -r source actual-result && pnpm prebuild",
         "pretest": "pnpm prebuild",
         "test": "pnpm pretest && vitest"
     },
