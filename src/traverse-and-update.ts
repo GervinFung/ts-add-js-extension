@@ -124,10 +124,9 @@ const traverseAndUpdateFileWithJSExtension =
                         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                         // @ts-ignore
                         value: imExDeclaration.moduleSpecifier.text,
-                        error: () =>
-                            new Error(
-                                'Module specifier of node should have text'
-                            ),
+                        error: new Error(
+                            'Module specifier of node should have text'
+                        ),
                     });
 
                     const delimiter = '/';
