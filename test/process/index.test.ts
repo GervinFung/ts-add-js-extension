@@ -8,8 +8,9 @@ describe('ts add js extension', () => {
     const getPath = (subPath: string) => path.join(__dirname, subPath);
 
     beforeAll(() => {
+        const testSetup = 'cd test/process && shx cp -r -f source actual-result && pnpm prebuild'
         console.log({
-            output: child.execSync('pnpm test-setup').toString(),
+            output: child.execSync(testSetup).toString(),
         });
     });
     it('should be able to append .js/.mjs extension for JavaScript file', async () => {

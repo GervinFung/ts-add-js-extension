@@ -157,8 +157,6 @@ const traverseAndUpdateFileWithJSExtension =
                             ),
                         });
 
-                    console.log({result})
-
                         switch (result.procedure) {
                             case 'proceed': {
                                 // if file name not included in list of js file read
