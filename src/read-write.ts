@@ -1,5 +1,5 @@
 import fs from 'fs';
-import path from 'path'
+import path from 'path';
 import ts from 'typescript';
 import type { PartialConfig } from './cli-command-parser';
 import traverseAndUpdateFileWithJSExtension from './traverse-and-update';
