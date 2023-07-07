@@ -8,7 +8,7 @@ const getAllActualCodeWithFilePath = (
 ): ReadonlyArray<
     Readonly<{
         filePath: string;
-        code: string;
+        code: () => string;
     }>
 > =>
     fs.readdirSync(dir).flatMap((file) => {
@@ -16,7 +16,7 @@ const getAllActualCodeWithFilePath = (
         if (fs.statSync(filePath).isDirectory()) {
             return getAllActualCodeWithFilePath(filePath);
         }
-        const code = fs.readFileSync(filePath, { encoding: 'utf-8' });
+        const code = () => fs.readFileSync(filePath, { encoding: 'utf-8' });
         return [
             {
                 filePath,
@@ -48,8 +48,9 @@ describe('ts add js extension', () => {
 
         it.each(getAllActualCodeWithFilePath(dir))(
             'should assert that file extension was added to proper import/export statement for file %s',
-            ({ filePath, code }) => {
-                expect(code).toBe(getExpectedCode(filePath));
+            async ({ filePath, code }) => {
+                await result;
+                expect(code()).toBe(getExpectedCode(filePath));
             }
         );
     });
@@ -76,8 +77,9 @@ describe('ts add js extension', () => {
 
                 it.each(getAllActualCodeWithFilePath(dir))(
                     'should assert that file extension was added to proper import/export statement',
-                    ({ filePath, code }) => {
-                        expect(code).toBe(getExpectedCode(filePath));
+                    async ({ filePath, code }) => {
+                        await result;
+                        expect(code()).toBe(getExpectedCode(filePath));
                     }
                 );
             }
