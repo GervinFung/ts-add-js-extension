@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 import { guard } from './type';
 import pkg from './package';
 
@@ -216,7 +217,9 @@ export default class ParseArgs {
             return {
                 type: 'help',
                 exists: true,
-                value: fs.readFileSync('public/help.md', { encoding: 'utf-8' }),
+                value: fs.readFileSync(path.join('public', 'help.md'), {
+                    encoding: 'utf-8',
+                }),
             };
         }
         return this.tokens.reduce(
