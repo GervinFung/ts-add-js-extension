@@ -6,12 +6,10 @@ import { extensionsUtil } from './const';
 import { asString } from './type';
 
 const formProperFilePath = ({
-    delimiter,
     filePath,
 }: Readonly<{
-    delimiter: string;
     filePath: string;
-}>) => filePath.split(delimiter).filter(Boolean).join(delimiter);
+}>) => filePath.split(path.sep).filter(Boolean).join(path.sep);
 
 const checkJavaScriptFileExistByAppend = ({
     filePath,
@@ -19,11 +17,11 @@ const checkJavaScriptFileExistByAppend = ({
     filePath: string;
 }>) => {
     const { js, mjs } = extensionsUtil().extensions;
-    const jsFile = filePath.concat(js);
+    const jsFile = `${filePath}${js}`;
     if (fs.existsSync(jsFile)) {
         return js;
     }
-    const mjsFile = filePath.concat(mjs);
+    const mjsFile = `${filePath}${mjs}`;
     if (fs.existsSync(mjsFile)) {
         return mjs;
     }
@@ -40,12 +38,10 @@ const isDirectory = (filePath: string) => {
 
 const addJSExtension = ({
     filePath,
-    delimiter,
     importPath,
 }: Readonly<{
     filePath: string;
     importPath: string;
-    delimiter: string;
 }>): Readonly<
     | {
           procedure: 'skip';
@@ -73,32 +69,31 @@ const addJSExtension = ({
         return {
             procedure: 'proceed',
             importPath: formProperFilePath({
-                delimiter,
                 filePath: `${importPath}${extension}`,
             }),
             filePathImported: formProperFilePath({
-                delimiter,
                 filePath: `${filePath}${extension}`,
             }),
         };
     }
     const extension = checkJavaScriptFileExistByAppend({
-        filePath: `${filePath}/index`,
+        filePath: path.join(filePath, 'index'),
     });
     if (!extension) {
         return {
             procedure: 'skip',
         };
     }
+
+    const file = `index${extension}`;
+
     return {
         procedure: 'proceed',
         importPath: formProperFilePath({
-            delimiter,
-            filePath: `${importPath}/index${extension}`,
+            filePath: path.join(importPath, file),
         }),
         filePathImported: formProperFilePath({
-            delimiter,
-            filePath: `${filePath}/index${extension}`,
+            filePath: path.join(filePath, file),
         }),
     };
 };
@@ -129,15 +124,12 @@ const traverseAndUpdateFileWithJSExtension =
                         ),
                     });
 
-                    const delimiter = '/';
-
                     const fileName = formProperFilePath({
-                        delimiter,
-                        filePath: !moduleSpecifier.endsWith(delimiter)
+                        filePath: !moduleSpecifier.endsWith(path.sep)
                             ? moduleSpecifier
                             : moduleSpecifier.slice(0, -1),
                     })
-                        .split(delimiter)
+                        .split(path.sep)
                         .pop();
 
                     if (!fileName) {
@@ -148,9 +140,8 @@ const traverseAndUpdateFileWithJSExtension =
 
                     if (moduleSpecifier.startsWith('.')) {
                         const result = addJSExtension({
-                            delimiter,
                             importPath: moduleSpecifier,
-                            filePath: path.posix.join(
+                            filePath: path.join(
                                 sourceFile.fileName,
                                 '..',
                                 moduleSpecifier
