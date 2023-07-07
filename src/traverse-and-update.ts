@@ -17,12 +17,10 @@ const checkJavaScriptFileExistByAppend = ({
     filePath: string;
 }>) => {
     const { js, mjs } = extensionsUtil().extensions;
-    const jsFile = `${filePath}${js}`;
-    if (fs.existsSync(jsFile)) {
+    if (fs.existsSync(`${filePath}${js}`)) {
         return js;
     }
-    const mjsFile = `${filePath}${mjs}`;
-    if (fs.existsSync(mjsFile)) {
+    if (fs.existsSync(`${filePath}${mjs}`)) {
         return mjs;
     }
     return false;
@@ -90,10 +88,10 @@ const addJSExtension = ({
     return {
         procedure: 'proceed',
         importPath: formProperFilePath({
-            filePath: path.join(importPath, file),
+            filePath: [importPath, path.sep, file].join(''),
         }),
         filePathImported: formProperFilePath({
-            filePath: path.join(filePath, file),
+            filePath: [filePath, path.sep, file].join(''),
         }),
     };
 };
