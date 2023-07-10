@@ -34,23 +34,33 @@ describe('ts add js extension', () => {
     const getPath = (subPath: string) => path.join(__dirname, subPath);
 
     describe('for JavaScript files only', () => {
-        const dir = getPath(path.join('actual-result', 'js'));
+        const parentDir = getPath(path.join('actual-result', 'js'));
 
-        const result = tsAddJsExtension({
-            config: {
-                dir,
-            },
-        });
+        const javaScriptIncludes = fs
+            .readdirSync(parentDir)
+            .map((childPath) => path.join(parentDir, childPath));
 
-        it('should be able to append either js or mjs file extension', async () => {
-            expect((await result).type).toBe('done');
-        });
+        describe.each(javaScriptIncludes)(
+            'assert that it will work for JavaScript files with import/export statement',
+            (dir) => {
+                const result = tsAddJsExtension({
+                    config: {
+                        dir,
+                        include: javaScriptIncludes,
+                    },
+                });
 
-        it.each(getAllActualCodeWithFilePath(dir))(
-            'should assert that file extension was added to proper import/export statement for file %s',
-            async ({ filePath, code }) => {
-                await result;
-                expect(code()).toBe(getExpectedCode(filePath));
+                it('should be able to append either js or mjs file extension', async () => {
+                    expect((await result).type).toBe('done');
+                });
+
+                it.each(getAllActualCodeWithFilePath(dir))(
+                    'should assert that file extension was added to proper import/export statement for file %s',
+                    async ({ filePath, code }) => {
+                        await result;
+                        expect(code()).toBe(getExpectedCode(filePath));
+                    }
+                );
             }
         );
     });

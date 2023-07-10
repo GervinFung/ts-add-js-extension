@@ -3,7 +3,7 @@ import path from 'path';
 import ts from 'typescript';
 import type { PartialConfig } from './cli-command-parser';
 import traverseAndUpdateFileWithJSExtension from './traverse-and-update';
-import { extensionsUtil } from './const';
+import { extensionsUtil, separator } from './const';
 import Log from './log';
 
 type SourceFile = Awaited<ReturnType<typeof getAllJSAndDTSCodes>[0]>;
@@ -12,7 +12,10 @@ type Files = ReadonlyArray<string>;
 
 const getAllJSAndDTSFiles = (dir: string): Files =>
     fs.readdirSync(dir).flatMap((file) => {
-        const filePath = path.join(dir, file);
+        const filePath = path.posix.join(
+            dir.split(path.sep).join(separator),
+            file
+        );
         if (fs.statSync(filePath).isDirectory()) {
             return getAllJSAndDTSFiles(filePath);
         }

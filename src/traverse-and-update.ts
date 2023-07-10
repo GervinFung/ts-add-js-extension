@@ -2,14 +2,14 @@ import fs from 'fs';
 import path from 'path';
 import ts from 'typescript';
 import type { SourceFile, Files } from './read-write';
-import { extensionsUtil } from './const';
+import { extensionsUtil, separator } from './const';
 import { asString } from './type';
 
 const formProperFilePath = ({
     filePath,
 }: Readonly<{
     filePath: string;
-}>) => filePath.split(path.sep).filter(Boolean).join(path.sep);
+}>) => filePath.split(separator).filter(Boolean).join(separator);
 
 const checkJavaScriptFileExistByAppend = ({
     filePath,
@@ -75,7 +75,7 @@ const addJSExtension = ({
         };
     }
     const extension = checkJavaScriptFileExistByAppend({
-        filePath: path.join(filePath, 'index'),
+        filePath: path.posix.join(filePath, 'index'),
     });
     if (!extension) {
         return {
@@ -88,10 +88,10 @@ const addJSExtension = ({
     return {
         procedure: 'proceed',
         importPath: formProperFilePath({
-            filePath: [importPath, path.sep, file].join(''),
+            filePath: [importPath, separator, file].join(''),
         }),
         filePathImported: formProperFilePath({
-            filePath: [filePath, path.sep, file].join(''),
+            filePath: [filePath, separator, file].join(''),
         }),
     };
 };
@@ -99,7 +99,8 @@ const addJSExtension = ({
 const traverseAndUpdateFileWithJSExtension =
     (files: Files) => (sourceFile: SourceFile) => {
         const charactersDelimiter = '';
-        const characters = sourceFile.getText().split(charactersDelimiter);
+        const code = sourceFile.getText();
+        const characters = code.split(charactersDelimiter);
 
         const replaceNodes = sourceFile.statements.flatMap((statement) => {
             switch (statement.kind) {
@@ -122,12 +123,14 @@ const traverseAndUpdateFileWithJSExtension =
                         ),
                     });
 
+                    const separator = '/';
+
                     const fileName = formProperFilePath({
-                        filePath: !moduleSpecifier.endsWith(path.sep)
+                        filePath: !moduleSpecifier.endsWith(separator)
                             ? moduleSpecifier
                             : moduleSpecifier.slice(0, -1),
                     })
-                        .split(path.sep)
+                        .split(separator)
                         .pop();
 
                     if (!fileName) {
@@ -139,7 +142,7 @@ const traverseAndUpdateFileWithJSExtension =
                     if (moduleSpecifier.startsWith('.')) {
                         const result = addJSExtension({
                             importPath: moduleSpecifier,
-                            filePath: path.join(
+                            filePath: path.posix.join(
                                 sourceFile.fileName,
                                 '..',
                                 moduleSpecifier
@@ -189,7 +192,7 @@ const traverseAndUpdateFileWithJSExtension =
                       code: replaceNodes.reduce(
                           (prev, { before, after }) =>
                               prev.replace(before, after),
-                          characters.join(charactersDelimiter)
+                          code
                       ),
                   },
               ];

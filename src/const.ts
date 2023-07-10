@@ -24,4 +24,6 @@ const extensionsUtil = () => {
     } as const;
 };
 
-export { extensionsUtil };
+const separator = '/';
+
+export { extensionsUtil, separator };
