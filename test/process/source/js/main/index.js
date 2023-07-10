@@ -6,7 +6,6 @@ import * as util from './util';
 import util from './util';
 import { util } from './util';
 
-
 export * as fs from 'fs';
 export * from 'fs';
 export { fs } from 'fs';

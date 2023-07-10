@@ -6,7 +6,6 @@ import * as util from './util.js';
 import util from './util.js';
 import { util } from './util.js';
 
-
 export * as fs from 'fs';
 export * from 'fs';
 export { fs } from 'fs';
