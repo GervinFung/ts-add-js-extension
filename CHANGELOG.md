@@ -1,8 +1,10 @@
+# 1.5.5 (5 Jul 2023)
+
+-   (Fix) Parse array of value with space
+
 # 1.5.4 (23 June 2023)
 
 -   (Fix) Properly parse token of ` ` and replace with `=`, so `--dir build` becomes `--dir=build` internally
-
-# 1.5.2 (22 June 2023)
 
 # 1.5.3 (22 June 2023)
 
