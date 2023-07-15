@@ -1,3 +1,7 @@
+# 1.5.6 (15 Jul 2023)
+
+-   (Fix) Move `typescript` from `devDependencies` to `dependencies`
+
 # 1.5.5 (5 Jul 2023)
 
 -   (Fix) Parse array of value with space
