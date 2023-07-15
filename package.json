@@ -1,7 +1,7 @@
 {
     "name": "ts-add-js-extension",
     "description": "Add .js or .mjs extension to each relative ESM import and export statement in JavaScript file",
-    "version": "1.5.5",
+    "version": "1.5.6",
     "license": "MIT",
     "main": "./build/cjs/index.js",
     "module": "./build/mjs/index.js",
@@ -38,6 +38,9 @@
         "type": "git",
         "url": "https://github.com/GervinFung/ts-add-js-extension"
     },
+    "dependencies": {
+        "typescript": "^5.1.6"
+    },
     "devDependencies": {
         "@poolofdeath20/eslint-config": "^0.1.0",
         "@types/node": "^20.1.7",
@@ -47,7 +50,6 @@
         "node-package-helper": "github:GervinFung/node-package-helper",
         "prettier": "^2.8.8",
         "shx": "^0.3.4",
-        "typescript": "^5.0.4",
         "vite-node": "^0.31.1",
         "vitest": "^0.31.0"
     },
