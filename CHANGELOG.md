@@ -1,3 +1,7 @@
+# 1.5.7 (15 Jul 2023)
+
+-   (Fix) Remove accidentally-committed temp files
+
 # 1.5.6 (15 Jul 2023)
 
 -   (Fix) Move `typescript` from `devDependencies` to `dependencies`
