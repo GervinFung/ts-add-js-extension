@@ -57,7 +57,7 @@ tsAddJsExtension({
 ```json
 {
     "scripts": {
-        "<command name can be anything>": "ts-add-js-extension add --dir=dist --include=common dist build --showchanges=true"
+        "<command name can be anything>": "ts-add-js-extension --dir=dist --include=common build --showchanges=true"
     }
 }
 ```
@@ -68,7 +68,7 @@ tsAddJsExtension({
 tsAddJsExtension({
     dir: 'dist',
     showProgress: true,
-    include: ['common', 'dist', 'build'],
+    include: ['common', 'build'],
 });
 ```
 
