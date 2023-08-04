@@ -36,9 +36,9 @@ The compiled folder for TypeScript or JavaScript can be named according to your 
 
 ```json
 {
-    "scripts": {
-        "<command name can be anything>": "ts-add-js-extension --dir=dist"
-    }
+	"scripts": {
+		"<command name can be anything>": "ts-add-js-extension --dir=dist"
+	}
 }
 ```
 
@@ -46,7 +46,7 @@ The compiled folder for TypeScript or JavaScript can be named according to your 
 
 ```js
 tsAddJsExtension({
-    dir: 'dist',
+	dir: 'dist',
 });
 ```
 
@@ -56,9 +56,9 @@ tsAddJsExtension({
 
 ```json
 {
-    "scripts": {
-        "<command name can be anything>": "ts-add-js-extension --dir=dist --include=common build --showchanges=true"
-    }
+	"scripts": {
+		"<command name can be anything>": "ts-add-js-extension --dir=dist --include=common build --showchanges=true"
+	}
 }
 ```
 
@@ -66,9 +66,9 @@ tsAddJsExtension({
 
 ```js
 tsAddJsExtension({
-    dir: 'dist',
-    showProgress: true,
-    include: ['common', 'build'],
+	dir: 'dist',
+	showProgress: true,
+	include: ['common', 'build'],
 });
 ```
 

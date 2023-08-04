@@ -9,20 +9,24 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                node: [20]
                 os: [ubuntu-latest, windows-latest]
-                threads:
-                    - '4'
+                node-version: [18, 20]
+                threads: [4]
 
-        name: Test with Node v${{ matrix.node }} on ${{ matrix.os }}
+        name: Test with Node ${{ matrix.node }} on ${{ matrix.os }}
+
         steps:
-            - uses: actions/checkout@v3
-            - uses: actions/setup-node@v3
-              with:
-                  node-version: ${{ matrix.node }}
+            - name: Checkout Code
+              uses: actions/checkout@v3
 
-            - name: Install Pnpm
-              run: npm i --location=global pnpm
+            - uses: pnpm/action-setup@v2
+              with:
+                  version: 8
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v3
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: 'pnpm'
 
             - name: Install Depedencies
               run: pnpm i

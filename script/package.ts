@@ -2,9 +2,9 @@ import fs from 'fs';
 import pkg from '../package.json';
 
 const main = () => {
-    fs.writeFileSync(
-        'src/package.ts',
-        `
+	fs.writeFileSync(
+		'src/package.ts',
+		`
 const pkg = {
     name: "${pkg.name}",
     version: "${pkg.version}"
@@ -12,7 +12,7 @@ const pkg = {
 
 export default pkg
 `
-    );
+	);
 };
 
 main();

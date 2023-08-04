@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -29,8 +29,8 @@ devDependencies:
     specifier: github:GervinFung/node-package-helper
     version: github.com/GervinFung/node-package-helper/b53f81c0fa827e4a0d6b622dbfe1b79d126a8a1f
   prettier:
-    specifier: ^2.8.8
-    version: 2.8.8
+    specifier: ^3.0.1
+    version: 3.0.1
   shx:
     specifier: ^0.3.4
     version: 0.3.4
@@ -2027,9 +2027,9 @@ packages:
     engines: {node: '>= 0.8.0'}
     dev: true
 
-  /prettier@2.8.8:
-    resolution: {integrity: sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==}
-    engines: {node: '>=10.13.0'}
+  /prettier@3.0.1:
+    resolution: {integrity: sha512-fcOWSnnpCrovBsmFZIGIy9UqK2FaI7Hqax+DIO0A9UxeVoY4iweyaFjS5TavZN97Hfehph0nhsZnjlVKzEQSrQ==}
+    engines: {node: '>=14'}
     hasBin: true
     dev: true
 
