@@ -13,7 +13,7 @@ jobs:
                 os: [ubuntu-latest, windows-latest]
                 threads: [4]
 
-        name: Test with Node ${{ matrix.node }} on ${{ matrix.os }}
+        name: Test with Node ${{ matrix.node-version }} on ${{ matrix.os }}
         steps:
             - name: Checkout Code
               uses: actions/checkout@v3
