@@ -9,20 +9,20 @@ import type { PartialConfig } from './cli-command-parser';
  * And requires you to write configs directly
  * */
 const parseConfig = (_: Readonly<Record<string, unknown>>) => {
-    throw new Error(
-        [
-            `Function parseConfig should not be used, this function exists because of "yargs"`,
-            `Now yargs is removed, cli arguments parser is hand-written`,
-        ].join('\n')
-    );
+	throw new Error(
+		[
+			`Function parseConfig should not be used, this function exists because of "yargs"`,
+			`Now yargs is removed, cli arguments parser is hand-written`,
+		].join('\n')
+	);
 };
 
 const valuelizeConfig = (config: PartialConfig) =>
-    ({
-        ...config,
-        showChanges: config.showChanges ?? true,
-        include: config.include ?? [],
-    } as const);
+	({
+		...config,
+		showChanges: config.showChanges ?? true,
+		include: config.include ?? [],
+	}) as const;
 
 export { valuelizeConfig, parseConfig };
 export type { PartialConfig as ParsedConfig };
