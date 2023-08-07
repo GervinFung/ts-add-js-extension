@@ -9,7 +9,9 @@ const formProperFilePath = ({
 	filePath,
 }: Readonly<{
 	filePath: string;
-}>) => filePath.split(separator).filter(Boolean).join(separator);
+}>) => {
+	return filePath.split(separator).filter(Boolean).join(separator);
+};
 
 const checkJavaScriptFileExistByAppend = ({
 	filePath,
@@ -96,8 +98,8 @@ const addJSExtension = ({
 	};
 };
 
-const traverseAndUpdateFileWithJSExtension =
-	(files: Files) => (sourceFile: SourceFile) => {
+const traverseAndUpdateFileWithJSExtension = (files: Files) => {
+	return (sourceFile: SourceFile) => {
 		const charactersDelimiter = '';
 		const code = sourceFile.getText();
 		const characters = code.split(charactersDelimiter);
@@ -154,16 +156,17 @@ const traverseAndUpdateFileWithJSExtension =
 								// if file name not included in list of js file read
 								const { filePathImported, importPath } = result;
 								if (
-									files.find((file) =>
-										file.endsWith(filePathImported)
-									)
+									files.find((file) => {
+										return file.endsWith(filePathImported);
+									})
 								) {
 									const before = characters
-										.filter(
-											(_, index) =>
+										.filter((_, index) => {
+											return (
 												index > imExDeclaration.pos &&
 												index < imExDeclaration.end
-										)
+											);
+										})
 										.join(charactersDelimiter);
 
 									return [
@@ -189,13 +192,12 @@ const traverseAndUpdateFileWithJSExtension =
 			: [
 					{
 						file: sourceFile.fileName,
-						code: replaceNodes.reduce(
-							(prev, { before, after }) =>
-								prev.replace(before, after),
-							code
-						),
+						code: replaceNodes.reduce((prev, { before, after }) => {
+							return prev.replace(before, after);
+						}, code),
 					},
 			  ];
 	};
+};
 
 export default traverseAndUpdateFileWithJSExtension;

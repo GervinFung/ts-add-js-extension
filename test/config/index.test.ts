@@ -3,18 +3,18 @@ import { describe, it, expect } from 'vitest';
 
 describe('Config parsing', () => {
 	it('should throw error when parsing config the old way', () => {
-		expect(() =>
-			parseConfig({
+		expect(() => {
+			return parseConfig({
 				dir: 'dir',
 				include: ['hi'],
-			})
-		).toThrowError();
+			});
+		}).toThrowError();
 	});
 	it('should parse config when only non optional config options are given', () => {
-		expect(() =>
-			parseConfig({
+		expect(() => {
+			return parseConfig({
 				dir: 'dir',
-			})
-		).toThrowError();
+			});
+		}).toThrowError();
 	});
 });

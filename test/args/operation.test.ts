@@ -44,8 +44,8 @@ describe('Operation arguments parsing', () => {
 		}
 	);
 	it('should parse config and throw error when mandatory options are absent', () => {
-		expect(() =>
-			ParseArgs.create(
+		expect(() => {
+			return ParseArgs.create(
 				[
 					'node',
 					'ts-add-js-extension',
@@ -53,7 +53,7 @@ describe('Operation arguments parsing', () => {
 					'--include=build/dts',
 					'--showchanges=true',
 				].join(' ')
-			).asOperation()
-		).toThrowError();
+			).asOperation();
+		}).toThrowError();
 	});
 });

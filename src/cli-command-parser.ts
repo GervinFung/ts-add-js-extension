@@ -157,19 +157,24 @@ export default class ParseArgs {
 		}
 		return new this(
 			tokens
-				.map((token) => (token === 'add' ? '' : token))
-				.filter((_, index) => index)
+				.map((token) => {
+					return token === 'add' ? '' : token;
+				})
+				.filter((_, index) => {
+					return index;
+				})
 		);
 	};
 
-	private static readonly checkPackageName = (name: string | undefined) =>
-		name?.includes(pkg.name ?? '')
+	private static readonly checkPackageName = (name: string | undefined) => {
+		return name?.includes(pkg.name ?? '')
 			? 'proceed'
 			: {
 					error: new Error(
 						`The pkg name "${name}" passed is invalid`
 					),
 			  };
+	};
 
 	private readonly tokenize = (args: Args) => {
 		const { assign } = commandKeyWords.assignment;
@@ -203,8 +208,8 @@ export default class ParseArgs {
 			});
 	};
 
-	readonly asVersion = () =>
-		this.tokens.reduce(
+	readonly asVersion = () => {
+		return this.tokens.reduce(
 			(result, token) => {
 				if (result.exists) {
 					return result;
@@ -213,6 +218,7 @@ export default class ParseArgs {
 			},
 			{ exists: false } as ReturnType<TokenParser['parseVersion']>
 		);
+	};
 
 	readonly asHelp = (): ReturnType<TokenParser['parseHelp']> => {
 		if (!this.tokens.length) {
@@ -254,30 +260,35 @@ export default class ParseArgs {
 		});
 
 		processedToken
-			.flatMap((node) => (node.type !== 'invalid' ? [] : [node]))
-			.forEach((node) =>
-				console.log(
+			.flatMap((node) => {
+				return node.type !== 'invalid' ? [] : [node];
+			})
+			.forEach((node) => {
+				return console.log(
 					`The "${node.token}" in the command is invalid as ${node.reason}. So please remove it`
-				)
-			);
+				);
+			});
 
-		const nodes = processedToken.flatMap((node) =>
-			node.type === 'invalid' ? [] : [node]
-		);
+		const nodes = processedToken.flatMap((node) => {
+			return node.type === 'invalid' ? [] : [node];
+		});
 
 		return {
 			dir: guard({
-				value: nodes.find((node) => node.type === 'dir')
-					?.value as ReturnType<TokenParser['parseDir']>['value'],
+				value: nodes.find((node) => {
+					return node.type === 'dir';
+				})?.value as ReturnType<TokenParser['parseDir']>['value'],
 				error: new Error(
 					'dir is a mandatory field, it should be present to know which dir it should operate on'
 				),
 			}),
 			// optional
-			include: nodes.find((node) => node.type === 'include')
-				?.value as ReturnType<TokenParser['parseInclude']>['value'],
-			showChanges: nodes.find((node) => node.type === 'showchanges')
-				?.value as ReturnType<TokenParser['parseShowChanges']>['value'],
+			include: nodes.find((node) => {
+				return node.type === 'include';
+			})?.value as ReturnType<TokenParser['parseInclude']>['value'],
+			showChanges: nodes.find((node) => {
+				return node.type === 'showchanges';
+			})?.value as ReturnType<TokenParser['parseShowChanges']>['value'],
 		} as const;
 	};
 }

@@ -10,8 +10,8 @@ type SourceFile = Awaited<ReturnType<typeof getAllJSAndDTSCodes>[0]>;
 
 type Files = ReadonlyArray<string>;
 
-const getAllJSAndDTSFiles = (dir: string): Files =>
-	fs.readdirSync(dir).flatMap((file) => {
+const getAllJSAndDTSFiles = (dir: string): Files => {
+	return fs.readdirSync(dir).flatMap((file) => {
 		const filePath = path.posix.join(
 			dir.split(path.sep).join(separator),
 			file
@@ -21,25 +21,38 @@ const getAllJSAndDTSFiles = (dir: string): Files =>
 		}
 		return !extensionsUtil().matchAny(filePath) ? [] : [filePath];
 	});
+};
 
-const readCode = (files: string): Promise<string> =>
-	new Promise((resolve, reject) => {
+const readCode = (files: string): Promise<string> => {
+	return new Promise((resolve, reject) => {
 		let fetchData = '';
 		fs.createReadStream(files)
-			.on('data', (data) => (fetchData = data.toString()))
-			.on('end', () => resolve(fetchData))
+			.on('data', (data) => {
+				return (fetchData = data.toString());
+			})
+			.on('end', () => {
+				return resolve(fetchData);
+			})
 			.on('error', reject);
 	});
+};
 
-const getAllJSAndDTSCodes = (files: Files) =>
-	files.map(async (file) =>
-		ts.createSourceFile(file, await readCode(file), ts.ScriptTarget.ESNext)
-	);
+const getAllJSAndDTSCodes = (files: Files) => {
+	return files.map(async (file) => {
+		return ts.createSourceFile(
+			file,
+			await readCode(file),
+			ts.ScriptTarget.ESNext
+		);
+	});
+};
 
 export default class File {
 	private constructor() {}
 
-	static readonly create = () => new this();
+	static readonly create = () => {
+		return new this();
+	};
 
 	readonly findMany = async ({
 		dir,
@@ -65,11 +78,11 @@ export default class File {
 			ReturnType<typeof traverseAndUpdateFileWithJSExtension>
 		>;
 	}>) => {
-		const repeat = withJSExtension.reduce(
-			(longestFileName, { file }) =>
-				longestFileName?.length <= file.length ? file : longestFileName,
-			''
-		).length;
+		const repeat = withJSExtension.reduce((longestFileName, { file }) => {
+			return longestFileName?.length <= file.length
+				? file
+				: longestFileName;
+		}, '').length;
 
 		const log = !(withJSExtension.length && showChanges)
 			? undefined
@@ -78,35 +91,36 @@ export default class File {
 		try {
 			const errors = (
 				await Promise.all(
-					withJSExtension.map(
-						({ code, file }) =>
-							new Promise<
-								| undefined
-								| Readonly<{
-										file: string;
-										error: NodeJS.ErrnoException;
-								  }>
-							>((resolve) =>
-								fs.writeFile(file, code, (error) => {
-									log?.increment({
-										repeat,
-										file,
-										succeed: !error,
-									});
+					withJSExtension.map(({ code, file }) => {
+						return new Promise<
+							| undefined
+							| Readonly<{
+									file: string;
+									error: NodeJS.ErrnoException;
+							  }>
+						>((resolve) => {
+							return fs.writeFile(file, code, (error) => {
+								log?.increment({
+									repeat,
+									file,
+									succeed: !error,
+								});
 
-									resolve(
-										!error
-											? undefined
-											: {
-													file,
-													error,
-											  }
-									);
-								})
-							)
-					)
+								resolve(
+									!error
+										? undefined
+										: {
+												file,
+												error,
+										  }
+								);
+							});
+						});
+					})
 				)
-			).flatMap((element) => (!element ? [] : [element]));
+			).flatMap((element) => {
+				return !element ? [] : [element];
+			});
 
 			log?.end({ errors });
 
