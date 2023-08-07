@@ -1,1 +1,3 @@
-export declare const identity = <T>(x: T) => T;
+export declare const identity = <T>(_: T) => {
+	return T;
+};

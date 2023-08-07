@@ -22,8 +22,8 @@
 		"build"
 	],
 	"scripts": {
-		"lint": "pnpm vite-node script/lint.ts",
-		"format": "pnpm prettier --ignore-path .gitignore **/*.{cjs,ts,json,md}",
+		"lint": "eslint . --ignore-path .gitignore --ext .ts --color",
+		"format": "prettier --ignore-path .gitignore **/*.{js,cjs,ts,json,md}",
 		"format-write": "pnpm format --write",
 		"format-check": "pnpm format --check",
 		"build-cjs": "tsc -p tsconfig.cjs.json && shx chmod +x build/cjs/bin.js",
@@ -43,7 +43,7 @@
 		"typescript": "^5.1.6"
 	},
 	"devDependencies": {
-		"@poolofdeath20/eslint-config": "^0.1.0",
+		"@poolofdeath20/eslint-config": "^0.2.1",
 		"@types/node": "^20.1.7",
 		"@typescript-eslint/eslint-plugin": "^5.59.6",
 		"@typescript-eslint/parser": "^5.59.6",

@@ -1,6 +1,7 @@
 export default class Log {
-	static readonly fromNumberOfFiles = (numberOfFiles: number) =>
-		new Log(numberOfFiles, 0);
+	static readonly fromNumberOfFiles = (numberOfFiles: number) => {
+		return new Log(numberOfFiles, 0);
+	};
 
 	private constructor(
 		private readonly numberOfFiles: number,
@@ -14,11 +15,17 @@ export default class Log {
 	}
 
 	// ref: https://chrisyeh96.github.io/2020/03/28/terminal-colors.html
-	private readonly redify = (word: string) => `\x1b[31m${word}\x1b[0m`;
+	private readonly redify = (word: string) => {
+		return `\x1b[31m${word}\x1b[0m`;
+	};
 
-	private readonly cyanify = (word: string) => `\x1b[36m${word}\x1b[0m`;
+	private readonly cyanify = (word: string) => {
+		return `\x1b[36m${word}\x1b[0m`;
+	};
 
-	private readonly boldify = (word: string) => `\x1b[1:37m${word}\x1b[0m`;
+	private readonly boldify = (word: string) => {
+		return `\x1b[1:37m${word}\x1b[0m`;
+	};
 
 	readonly increment = ({
 		file,
@@ -64,11 +71,12 @@ export default class Log {
 			);
 			console.error(
 				Array.from(errors)
-					.sort((a, b) => a.file.length - b.file.length)
-					.map(
-						({ file, error }, index) =>
-							`${index}. file: ${file}, reason: ${error.message}`
-					)
+					.sort((a, b) => {
+						return a.file.length - b.file.length;
+					})
+					.map(({ file, error }, index) => {
+						return `${index}. file: ${file}, reason: ${error.message}`;
+					})
 					.join('\n')
 			);
 		}

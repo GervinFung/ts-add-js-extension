@@ -6,6 +6,8 @@ describe('Log', () => {
 		expect(Log.fromNumberOfFiles(1)).toBeInstanceOf(Log);
 	});
 	it('should throw error when there is an attempt to instantiate Log but there is no file to be changed', () => {
-		expect(() => Log.fromNumberOfFiles(0)).toThrowError();
+		expect(() => {
+			return Log.fromNumberOfFiles(0);
+		}).toThrowError();
 	});
 });
