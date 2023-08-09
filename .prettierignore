@@ -1,0 +1,12 @@
+node_modules
+# production
+build
+
+# generated
+src/package.ts
+.prettierrc
+
+# test
+test/process/actual-result
+
+pnpm-lock.yaml
