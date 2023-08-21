@@ -1,11 +1,18 @@
 const extensionsUtil = () => {
 	const extensions = {
-		js: '.js',
-		mjs: '.mjs',
-		dts: '.d.ts',
+		javaScript: {
+			js: '.js',
+			mjs: '.mjs',
+		},
+		typeDefinition: {
+			dts: '.d.ts',
+			dmts: '.d.mts',
+		},
 	} as const;
 
-	const arrayfyExtensions = Object.values(extensions);
+	const arrayfyExtensions = Object.values(extensions).flatMap((value) => {
+		return Object.values(value);
+	});
 
 	return {
 		extensions,
@@ -13,7 +20,18 @@ const extensionsUtil = () => {
 			return Boolean(
 				arrayfyExtensions
 					.filter((extension) => {
-						return extension !== '.d.ts';
+						return extension !== '.d.ts' && extension !== '.d.mts';
+					})
+					.find((extension) => {
+						return filePath.endsWith(extension);
+					})
+			);
+		},
+		matchAnyDts: (filePath: string) => {
+			return Boolean(
+				arrayfyExtensions
+					.filter((extension) => {
+						return extension !== '.d.ts' && extension !== '.d.mts';
 					})
 					.find((extension) => {
 						return filePath.endsWith(extension);

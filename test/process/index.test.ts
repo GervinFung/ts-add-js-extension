@@ -77,15 +77,9 @@ describe('ts add js extension', () => {
 		const parentDir = getPath(path.join('actual-result', 'dts'));
 
 		describe.each(
-			fs
-				.readdirSync(parentDir)
-				// filter out dts files only, until a solution is figured
-				.filter((dir) => {
-					return dir !== 'dts-only';
-				})
-				.map((childPath) => {
-					return path.join(parentDir, childPath);
-				})
+			fs.readdirSync(parentDir).map((childPath) => {
+				return path.join(parentDir, childPath);
+			})
 		)(
 			'assert that it will work for Type Definition files with or without JavaScript',
 			(dir) => {

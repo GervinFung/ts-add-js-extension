@@ -1,2 +1,2 @@
-// BUG: not working on windows
-export * from './utils/index.js';
+export * from './utils';
+export * from './utils/util';
