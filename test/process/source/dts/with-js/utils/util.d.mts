@@ -1,3 +1,1 @@
-export declare const identity = <T,>(_: T) => {
-	return T;
-};
+export declare const utilIdentity: <T>(_: T) => never;

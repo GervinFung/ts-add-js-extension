@@ -1,3 +1,3 @@
-export const identity = (x) => {
+export const utilIdentity = (x) => {
 	return x;
 };
