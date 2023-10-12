@@ -3,29 +3,32 @@ import path from 'path';
 import ts from 'typescript';
 import type { PartialConfig } from './cli-command-parser';
 import traverseAndUpdateFileWithJSExtension from './traverse-and-update';
-import { extensionsUtil, separator } from './const';
+import { ExtensionsUtil, separator } from './const';
 import Log from './log';
 
 type SourceFile = Awaited<ReturnType<typeof getAllJSAndDTSCodes>[0]>;
 
 type Files = ReadonlyArray<string>;
 
-const getAllJSAndDTSFiles = (dir: string): Files => {
-	return fs.readdirSync(dir).flatMap((file) => {
+const getAllJSAndDTSFiles = (directory: string): Files => {
+	return fs.readdirSync(directory).flatMap((file) => {
 		const filePath = path.posix.join(
-			dir.split(path.sep).join(separator),
+			directory.split(path.sep).join(separator),
 			file
 		);
+
 		if (fs.statSync(filePath).isDirectory()) {
 			return getAllJSAndDTSFiles(filePath);
 		}
-		return !extensionsUtil().matchAny(filePath) ? [] : [filePath];
+
+		return !ExtensionsUtil.matchEither(filePath) ? [] : [filePath];
 	});
 };
 
-const readCode = (files: string): Promise<string> => {
-	return new Promise((resolve, reject) => {
+const readCode = (files: string) => {
+	return new Promise<string>((resolve, reject) => {
 		let fetchData = '';
+
 		fs.createReadStream(files)
 			.on('data', (data) => {
 				return (fetchData = data.toString());
@@ -62,7 +65,7 @@ export default class File {
 		include: ReadonlyArray<string>;
 	}>) => {
 		// user may import files from `common` into `src`
-		const files: Files = include.concat(dir).flatMap(getAllJSAndDTSFiles);
+		const files = include.concat(dir).flatMap(getAllJSAndDTSFiles);
 
 		return (await Promise.all(getAllJSAndDTSCodes(files))).flatMap(
 			traverseAndUpdateFileWithJSExtension(files)

@@ -2,57 +2,59 @@ import fs from 'fs';
 import path from 'path';
 import ts from 'typescript';
 import type { SourceFile, Files } from './read-write';
-import { extensionsUtil, separator } from './const';
+import { ExtensionsUtil, separator } from './const';
 import { asString } from './type';
 
-const formProperFilePath = ({
-	filePath,
-}: Readonly<{
-	filePath: string;
-}>) => {
-	return filePath.split(separator).filter(Boolean).join(separator);
+const formProperFilePath = (
+	props: Readonly<{
+		filePath: string;
+	}>
+) => {
+	return props.filePath.split(separator).filter(Boolean).join(separator);
 };
 
-const checkJavaScriptFileExistByAppend = ({
-	filePath,
-}: Readonly<{
-	filePath: string;
-}>) => {
-	const { js, mjs } = extensionsUtil().extensions.javaScript;
+const checkJavaScriptFileExistByAppend = (
+	props: Readonly<{
+		filePath: string;
+	}>
+) => {
+	const { js, mjs } = ExtensionsUtil.extensions.javaScript;
 
-	const jsFilePath = `${filePath}${js}`;
+	const jsFilePath = `${props.filePath}${js}`;
 
 	if (fs.existsSync(jsFilePath)) {
 		return { extension: js, filePath: jsFilePath };
 	}
 
-	const mjsFilePath = `${filePath}${mjs}`;
+	const mjsFilePath = `${props.filePath}${mjs}`;
 
 	if (fs.existsSync(mjsFilePath)) {
 		return { extension: mjs, filePath: mjsFilePath };
 	}
+
 	return false;
 };
 
-const checkTypeDefinitionFileExistByAppend = ({
-	filePath,
-}: Readonly<{
-	filePath: string;
-}>) => {
-	const { extensions } = extensionsUtil();
-	const { js, mjs } = extensions.javaScript;
-	const { dts, dmts } = extensions.typeDefinition;
+const checkTypeDefinitionFileExistByAppend = (
+	props: Readonly<{
+		filePath: string;
+	}>
+) => {
+	const { js, mjs } = ExtensionsUtil.extensions.javaScript;
+	const { dts, dmts } = ExtensionsUtil.extensions.typeDefinition;
 
-	const dtsFilePath = `${filePath}${dts}`;
+	const dtsFilePath = `${props.filePath}${dts}`;
 
 	if (fs.existsSync(dtsFilePath)) {
 		return { extension: js, filePath: dtsFilePath };
 	}
 
-	const dmtsFileapath = `${filePath}${dmts}`;
+	const dmtsFileapath = `${props.filePath}${dmts}`;
+
 	if (fs.existsSync(dmtsFileapath)) {
 		return { extension: mjs, filePath: dmtsFileapath };
 	}
+
 	return false;
 };
 
@@ -64,17 +66,15 @@ const isDirectory = (filePath: string) => {
 	}
 };
 
-const addJSExtensionConditionally = ({
-	filePath,
-	importPath,
-	checkType,
-}: Readonly<{
-	filePath: string;
-	importPath: string;
-	checkType: 'dts' | 'js';
-}>) => {
+const addJSExtensionConditionally = (
+	props: Readonly<{
+		filePath: string;
+		importPath: string;
+		checkType: 'dts' | 'js';
+	}>
+) => {
 	const check =
-		checkType === 'js'
+		props.checkType === 'js'
 			? checkJavaScriptFileExistByAppend
 			: checkTypeDefinitionFileExistByAppend;
 
@@ -82,9 +82,9 @@ const addJSExtensionConditionally = ({
 		procedure: 'skip',
 	} as const;
 
-	if (!isDirectory(filePath)) {
+	if (!isDirectory(props.filePath)) {
 		const extensionResult = check({
-			filePath,
+			filePath: props.filePath,
 		});
 
 		if (!extensionResult) {
@@ -95,13 +95,13 @@ const addJSExtensionConditionally = ({
 			procedure: 'proceed',
 			absolutePath: extensionResult.filePath,
 			importPath: formProperFilePath({
-				filePath: `${importPath}${extensionResult.extension}`,
+				filePath: `${props.importPath}${extensionResult.extension}`,
 			}),
 		} as const;
 	}
 
 	const extensionResult = check({
-		filePath: path.posix.join(filePath, 'index'),
+		filePath: path.posix.join(props.filePath, 'index'),
 	});
 
 	if (!extensionResult) {
@@ -114,27 +114,25 @@ const addJSExtensionConditionally = ({
 		procedure: 'proceed',
 		absolutePath: extensionResult.filePath,
 		importPath: formProperFilePath({
-			filePath: [importPath, separator, file].join(''),
+			filePath: [props.importPath, separator, file].join(''),
 		}),
 	} as const;
 };
 
-const addJSExtension = ({
-	filePath,
-	importPath,
-}: Readonly<{
-	filePath: string;
-	importPath: string;
-}>): ReturnType<typeof addJSExtensionConditionally> => {
-	if (extensionsUtil().matchAnyJs(filePath)) {
+const addJSExtension = (
+	props: Readonly<{
+		filePath: string;
+		importPath: string;
+	}>
+): ReturnType<typeof addJSExtensionConditionally> => {
+	if (ExtensionsUtil.matchJs(props.filePath)) {
 		return {
 			procedure: 'skip',
 		};
 	}
 
 	const result = addJSExtensionConditionally({
-		filePath,
-		importPath,
+		...props,
 		checkType: 'js',
 	});
 
@@ -143,8 +141,7 @@ const addJSExtension = ({
 	}
 
 	return addJSExtensionConditionally({
-		filePath,
-		importPath,
+		...props,
 		checkType: 'dts',
 	});
 };

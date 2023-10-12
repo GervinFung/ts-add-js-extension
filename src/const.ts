@@ -1,5 +1,5 @@
-const extensionsUtil = () => {
-	const extensions = {
+class ExtensionsUtil {
+	static readonly extensions = {
 		javaScript: {
 			js: '.js',
 			mjs: '.mjs',
@@ -10,44 +10,23 @@ const extensionsUtil = () => {
 		},
 	} as const;
 
-	const arrayfyExtensions = Object.values(extensions).flatMap((value) => {
-		return Object.values(value);
-	});
+	static readonly matchJs = (filePath: string) => {
+		const { js, mjs } = this.extensions.javaScript;
 
-	return {
-		extensions,
-		matchAnyJs: (filePath: string) => {
-			return Boolean(
-				arrayfyExtensions
-					.filter((extension) => {
-						return extension !== '.d.ts' && extension !== '.d.mts';
-					})
-					.find((extension) => {
-						return filePath.endsWith(extension);
-					})
-			);
-		},
-		matchAnyDts: (filePath: string) => {
-			return Boolean(
-				arrayfyExtensions
-					.filter((extension) => {
-						return extension !== '.d.ts' && extension !== '.d.mts';
-					})
-					.find((extension) => {
-						return filePath.endsWith(extension);
-					})
-			);
-		},
-		matchAny: (filePath: string) => {
-			return Boolean(
-				arrayfyExtensions.find((extension) => {
-					return filePath.endsWith(extension);
-				})
-			);
-		},
-	} as const;
-};
+		return filePath.endsWith(js) || filePath.endsWith(mjs);
+	};
+
+	static readonly matchDts = (filePath: string) => {
+		const { dts, dmts } = this.extensions.typeDefinition;
+
+		return filePath.endsWith(dts) || filePath.endsWith(dmts);
+	};
+
+	static readonly matchEither = (filePath: string) => {
+		return this.matchJs(filePath) || this.matchDts(filePath);
+	};
+}
 
 const separator = '/';
 
-export { extensionsUtil, separator };
+export { ExtensionsUtil, separator };

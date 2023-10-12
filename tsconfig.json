@@ -14,9 +14,9 @@
 		"pretty": true,
 		"verbatimModuleSyntax": true,
 		"noEmit": true,
-		"module": "ESNext",
+		"module": "esnext",
 		"moduleResolution": "bundler"
 	},
-	"include": ["src", "test"],
-	"exclude": ["node_modules", "package.json"]
+	"include": ["**/*.ts"],
+	"exclude": ["node_modules"]
 }
