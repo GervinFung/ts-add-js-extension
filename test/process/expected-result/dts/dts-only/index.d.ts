@@ -1,2 +1,2 @@
 export * from './utils/index.js';
-export * from './utils/util.mjs';
+export * from './utils/util';

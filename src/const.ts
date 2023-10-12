@@ -2,24 +2,22 @@ class ExtensionsUtil {
 	static readonly extensions = {
 		javaScript: {
 			js: '.js',
-			mjs: '.mjs',
 		},
 		typeDefinition: {
 			dts: '.d.ts',
-			dmts: '.d.mts',
 		},
 	} as const;
 
 	static readonly matchJs = (filePath: string) => {
-		const { js, mjs } = this.extensions.javaScript;
+		const { js } = this.extensions.javaScript;
 
-		return filePath.endsWith(js) || filePath.endsWith(mjs);
+		return filePath.endsWith(js);
 	};
 
 	static readonly matchDts = (filePath: string) => {
-		const { dts, dmts } = this.extensions.typeDefinition;
+		const { dts } = this.extensions.typeDefinition;
 
-		return filePath.endsWith(dts) || filePath.endsWith(dmts);
+		return filePath.endsWith(dts);
 	};
 
 	static readonly matchEither = (filePath: string) => {

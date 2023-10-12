@@ -18,18 +18,12 @@ const checkJavaScriptFileExistByAppend = (
 		filePath: string;
 	}>
 ) => {
-	const { js, mjs } = ExtensionsUtil.extensions.javaScript;
+	const { js } = ExtensionsUtil.extensions.javaScript;
 
 	const jsFilePath = `${props.filePath}${js}`;
 
 	if (fs.existsSync(jsFilePath)) {
 		return { extension: js, filePath: jsFilePath };
-	}
-
-	const mjsFilePath = `${props.filePath}${mjs}`;
-
-	if (fs.existsSync(mjsFilePath)) {
-		return { extension: mjs, filePath: mjsFilePath };
 	}
 
 	return false;
@@ -40,19 +34,13 @@ const checkTypeDefinitionFileExistByAppend = (
 		filePath: string;
 	}>
 ) => {
-	const { js, mjs } = ExtensionsUtil.extensions.javaScript;
-	const { dts, dmts } = ExtensionsUtil.extensions.typeDefinition;
+	const { js } = ExtensionsUtil.extensions.javaScript;
+	const { dts } = ExtensionsUtil.extensions.typeDefinition;
 
 	const dtsFilePath = `${props.filePath}${dts}`;
 
 	if (fs.existsSync(dtsFilePath)) {
 		return { extension: js, filePath: dtsFilePath };
-	}
-
-	const dmtsFileapath = `${props.filePath}${dmts}`;
-
-	if (fs.existsSync(dmtsFileapath)) {
-		return { extension: mjs, filePath: dmtsFileapath };
 	}
 
 	return false;
@@ -232,6 +220,7 @@ const traverseAndUpdateFileWithJSExtension = (files: Files) => {
 					}
 				}
 			}
+
 			return [];
 		});
 
@@ -240,8 +229,8 @@ const traverseAndUpdateFileWithJSExtension = (files: Files) => {
 			: [
 					{
 						file: sourceFile.fileName,
-						code: replaceNodes.reduce((prev, { before, after }) => {
-							return prev.replace(before, after);
+						code: replaceNodes.reduce((code, node) => {
+							return code.replace(node.before, node.after);
 						}, code),
 					},
 			  ];
