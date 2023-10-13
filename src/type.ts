@@ -1,23 +1,22 @@
-const guard = <T, Err extends Error>({
-	value,
-	error,
-}: Readonly<{
-	value: T;
-	error: Err;
-}>) => {
-	const t = value;
+const guard = <T, Err extends Error>(
+	props: Readonly<{
+		value: T;
+		error: Err;
+	}>
+) => {
+	const t = props.value;
 	if (t !== undefined && t != null) {
 		return t;
 	}
-	throw error;
+	throw props.error;
 };
 
-const asString = ({ value, error }: Parameters<typeof guard>[0]) => {
-	const s = value;
+const asString = (props: Parameters<typeof guard>[0]) => {
+	const s = props.value;
 	if (typeof s === 'string') {
 		return s;
 	}
-	throw error;
+	throw props.error;
 };
 
 export { guard, asString };

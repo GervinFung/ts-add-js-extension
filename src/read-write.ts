@@ -57,44 +57,47 @@ export default class File {
 		return new this();
 	};
 
-	readonly findMany = async ({
-		dir,
-		include,
-	}: Readonly<{
-		dir: PartialConfig['dir'];
-		include: ReadonlyArray<string>;
-	}>) => {
+	readonly findMany = async (
+		props: Readonly<{
+			dir: PartialConfig['dir'];
+			include: ReadonlyArray<string>;
+		}>
+	) => {
 		// user may import files from `common` into `src`
-		const files = include.concat(dir).flatMap(getAllJSAndDTSFiles);
+		const files = props.include
+			.concat(props.dir)
+			.flatMap(getAllJSAndDTSFiles);
 
 		return (await Promise.all(getAllJSAndDTSCodes(files))).flatMap(
 			traverseAndUpdateFileWithJSExtension(files)
 		);
 	};
 
-	readonly writeMany = async ({
-		showChanges,
-		withJSExtension,
-	}: Readonly<{
-		showChanges: boolean;
-		withJSExtension: ReturnType<
-			ReturnType<typeof traverseAndUpdateFileWithJSExtension>
-		>;
-	}>) => {
-		const repeat = withJSExtension.reduce((longestFileName, { file }) => {
-			return longestFileName?.length <= file.length
-				? file
-				: longestFileName;
-		}, '').length;
+	readonly writeMany = async (
+		props: Readonly<{
+			showChanges: boolean;
+			withJSExtension: ReturnType<
+				ReturnType<typeof traverseAndUpdateFileWithJSExtension>
+			>;
+		}>
+	) => {
+		const repeat = props.withJSExtension.reduce(
+			(longestFileName, { file }) => {
+				return longestFileName?.length <= file.length
+					? file
+					: longestFileName;
+			},
+			''
+		).length;
 
-		const log = !(withJSExtension.length && showChanges)
+		const log = !(props.withJSExtension.length && props.showChanges)
 			? undefined
-			: Log.fromNumberOfFiles(withJSExtension.length);
+			: Log.fromNumberOfFiles(props.withJSExtension.length);
 
 		try {
 			const errors = (
 				await Promise.all(
-					withJSExtension.map(({ code, file }) => {
+					props.withJSExtension.map(({ code, file }) => {
 						return new Promise<
 							| undefined
 							| Readonly<{

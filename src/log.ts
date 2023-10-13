@@ -27,15 +27,13 @@ export default class Log {
 		return `\x1b[1:37m${word}\x1b[0m`;
 	};
 
-	readonly increment = ({
-		file,
-		repeat,
-		succeed,
-	}: Readonly<{
-		file: string;
-		repeat: number;
-		succeed: boolean;
-	}>) => {
+	readonly increment = (
+		props: Readonly<{
+			file: string;
+			repeat: number;
+			succeed: boolean;
+		}>
+	) => {
 		if (this.numberOfFiles <= this.completedFiles) {
 			throw new Error(
 				`Number of files succeed: ${this.completedFiles} cannot be the same as number of files: ${this.numberOfFiles}`
@@ -46,31 +44,35 @@ export default class Log {
 				`${this.completedFiles}. ${' '.repeat(
 					this.numberOfFiles.toString().length -
 						this.completedFiles.toString().length
-				)}${this.boldify(file)}${' '.repeat(repeat - file.length)} - ${
-					succeed ? this.cyanify('SUCCEED') : this.redify('FAILED')
+				)}${this.boldify(props.file)}${' '.repeat(
+					props.repeat - props.file.length
+				)} - ${
+					props.succeed
+						? this.cyanify('SUCCEED')
+						: this.redify('FAILED')
 				}`
 			);
 		}
 	};
 
-	readonly end = ({
-		errors,
-	}: Readonly<{
-		errors: ReadonlyArray<
-			Readonly<{
-				file: string;
-				error: NodeJS.ErrnoException;
-			}>
-		>;
-	}>) => {
-		if (errors.length) {
+	readonly end = (
+		props: Readonly<{
+			errors: ReadonlyArray<
+				Readonly<{
+					file: string;
+					error: NodeJS.ErrnoException;
+				}>
+			>;
+		}>
+	) => {
+		if (props.errors.length) {
 			console.error(
 				`The following file${
-					errors.length === 1 ? '' : 's'
-				} failed to add either .js or .mjs file extension`
+					props.errors.length === 1 ? '' : 's'
+				} failed to add either .js file extension`
 			);
 			console.error(
-				Array.from(errors)
+				Array.from(props.errors)
 					.sort((a, b) => {
 						return a.file.length - b.file.length;
 					})

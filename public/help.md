@@ -1,6 +1,6 @@
 ts-add-js-extension.js
 
-Automatically appending the `.js` or `.mjs` extension to each relative import and export statement in ES Module JavaScript
+Automatically appending the `.js` extension to each relative import and export statement in ES Module JavaScript
 
 This feature is particularly beneficial for TypeScript projects that target ES Module.
 
