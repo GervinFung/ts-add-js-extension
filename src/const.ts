@@ -1,35 +1,32 @@
-const extensionsUtil = () => {
-	const extensions = {
-		js: '.js',
-		mjs: '.mjs',
-		dts: '.d.ts',
-	} as const;
-
-	const arrayfyExtensions = Object.values(extensions);
-
-	return {
-		extensions,
-		matchAnyJs: (filePath: string) => {
-			return Boolean(
-				arrayfyExtensions
-					.filter((extension) => {
-						return extension !== '.d.ts';
-					})
-					.find((extension) => {
-						return filePath.endsWith(extension);
-					})
-			);
+class ExtensionsUtil {
+	static readonly extensions = {
+		javaScript: {
+			js: '.js',
+			mjs: '.mjs',
 		},
-		matchAny: (filePath: string) => {
-			return Boolean(
-				arrayfyExtensions.find((extension) => {
-					return filePath.endsWith(extension);
-				})
-			);
+		typeDefinition: {
+			dts: '.d.ts',
+			dmts: '.d.mts',
 		},
 	} as const;
-};
+
+	static readonly matchJs = (filePath: string) => {
+		const { js, mjs } = this.extensions.javaScript;
+
+		return filePath.endsWith(js) || filePath.endsWith(mjs);
+	};
+
+	static readonly matchDts = (filePath: string) => {
+		const { dts, dmts } = this.extensions.typeDefinition;
+
+		return filePath.endsWith(dts) || filePath.endsWith(dmts);
+	};
+
+	static readonly matchEither = (filePath: string) => {
+		return this.matchJs(filePath) || this.matchDts(filePath);
+	};
+}
 
 const separator = '/';
 
-export { extensionsUtil, separator };
+export { ExtensionsUtil, separator };

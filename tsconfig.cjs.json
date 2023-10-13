@@ -1,11 +1,11 @@
 {
 	"extends": "./tsconfig.js.json",
 	"compilerOptions": {
-		"module": "CommonJS",
+		"module": "commonjs",
 		"verbatimModuleSyntax": false,
 		"moduleResolution": "node",
 		"esModuleInterop": true,
 		"outDir": "build/cjs",
-		"target": "ES5"
+		"target": "es5"
 	}
 }

@@ -2,41 +2,48 @@ import fs from 'fs';
 import path from 'path';
 import { describe, it, expect } from 'vitest';
 import { tsAddJsExtension } from '../../src';
-
-const getAllActualCodeWithFilePath = (
-	dir: string
-): ReadonlyArray<
-	Readonly<{
-		filePath: string;
-		code: () => string;
-	}>
-> => {
-	return fs.readdirSync(dir).flatMap((file) => {
-		const filePath = path.join(dir, file);
-		if (fs.statSync(filePath).isDirectory()) {
-			return getAllActualCodeWithFilePath(filePath);
-		}
-		const code = () => {
-			return fs.readFileSync(filePath, { encoding: 'utf-8' });
-		};
-		return [
-			{
-				filePath,
-				code,
-			},
-		];
-	});
-};
-
-const getExpectedCode = (filePath: string) => {
-	return fs.readFileSync(filePath.replace('actual', 'expected'), {
-		encoding: 'utf-8',
-	});
-};
-
 describe('ts add js extension', () => {
 	const getPath = (subPath: string) => {
 		return path.join(__dirname, subPath);
+	};
+
+	const getAllActualCodeWithFilePath = (
+		dir: string
+	): ReadonlyArray<
+		Readonly<{
+			code: Readonly<{
+				actual: () => string;
+				expected: () => string;
+			}>;
+		}>
+	> => {
+		return fs.readdirSync(dir).flatMap((file) => {
+			const filePath = path.join(dir, file);
+
+			if (fs.statSync(filePath).isDirectory()) {
+				return getAllActualCodeWithFilePath(filePath);
+			}
+
+			return [
+				{
+					code: {
+						actual: () => {
+							return fs.readFileSync(filePath, {
+								encoding: 'utf-8',
+							});
+						},
+						expected: () => {
+							return fs.readFileSync(
+								filePath.replace('actual', 'expected'),
+								{
+									encoding: 'utf-8',
+								}
+							);
+						},
+					},
+				},
+			];
+		});
 	};
 
 	describe('for JavaScript files only', () => {
@@ -64,9 +71,9 @@ describe('ts add js extension', () => {
 
 				it.each(getAllActualCodeWithFilePath(dir))(
 					'should assert that file extension was added to proper import/export statement for file %s',
-					async ({ filePath, code }) => {
+					async ({ code }) => {
 						await result;
-						expect(code()).toBe(getExpectedCode(filePath));
+						expect(code.actual()).toBe(code.expected());
 					}
 				);
 			}
@@ -77,15 +84,9 @@ describe('ts add js extension', () => {
 		const parentDir = getPath(path.join('actual-result', 'dts'));
 
 		describe.each(
-			fs
-				.readdirSync(parentDir)
-				// filter out dts files only, until a solution is figured
-				.filter((dir) => {
-					return dir !== 'dts-only';
-				})
-				.map((childPath) => {
-					return path.join(parentDir, childPath);
-				})
+			fs.readdirSync(parentDir).map((childPath) => {
+				return path.join(parentDir, childPath);
+			})
 		)(
 			'assert that it will work for Type Definition files with or without JavaScript',
 			(dir) => {
@@ -101,9 +102,9 @@ describe('ts add js extension', () => {
 
 				it.each(getAllActualCodeWithFilePath(dir))(
 					'should assert that file extension was added to proper import/export statement',
-					async ({ filePath, code }) => {
+					async ({ code }) => {
 						await result;
-						expect(code()).toBe(getExpectedCode(filePath));
+						expect(code.actual()).toBe(code.expected());
 					}
 				);
 			}
