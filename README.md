@@ -12,7 +12,7 @@ Instead, this package is designed to cater to TypeScript or JavaScript projects 
 # Feature
 
 Initially designed for TypeScript projects exclusively, this solution also caters to those who prefer a more convenient approach when working with JavaScript.
-By automatically appending the `.js` or `.mjs` extension to each relative import and export statement in ES Module JavaScript, you can save yourself the effort of doing it manually.
+By automatically appending the `.js` extension to each relative import and export statement in ES Module JavaScript, you can save yourself the effort of doing it manually.
 This feature is particularly beneficial for TypeScript projects that target ES Module.
 
 Als, this decision was motivated by the belief that it is unnecessary to import/export a JavaScript file that does not exist in the source code folder.
