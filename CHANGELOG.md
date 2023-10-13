@@ -1,3 +1,8 @@
+# 1.6.0 (13 Oct 2023)
+
+-   (Feat) Append `.js` extension to directory with type declaration/definitions only
+-   (Refactor) Removed functionality to append `.js` to `mjs` files, since typescript compiler force us to append `.mjs` extensions
+
 # 1.5.7 (27 Jul 2023)
 
 -   (Fix) Append `.js` extension to `mjs` files
