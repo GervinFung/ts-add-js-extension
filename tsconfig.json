@@ -3,7 +3,7 @@
 		"allowJs": false,
 		"checkJs": false,
 		"strict": true,
-		"skipLibCheck": true,
+		"skipLibCheck": false,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"noImplicitReturns": true,
