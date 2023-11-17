@@ -45,12 +45,12 @@
 	"devDependencies": {
 		"@poolofdeath20/eslint-config": "^0.3.2",
 		"@poolofdeath20/prettier-config-generator": "^0.0.1",
-		"@types/node": "^20.8.10",
-		"@typescript-eslint/eslint-plugin": "^6.9.1",
-		"@typescript-eslint/parser": "^6.9.1",
-		"eslint": "^8.52.0",
+		"@types/node": "^20.9.1",
+		"@typescript-eslint/eslint-plugin": "^6.11.0",
+		"@typescript-eslint/parser": "^6.11.0",
+		"eslint": "^8.53.0",
 		"node-package-helper": "github:GervinFung/node-package-helper",
-		"prettier": "^3.0.3",
+		"prettier": "^3.1.0",
 		"shx": "^0.3.4",
 		"vite-node": "^0.34.6",
 		"vitest": "^0.34.6"
