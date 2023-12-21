@@ -233,7 +233,7 @@ const traverseAndUpdateFileWithJSExtension = (files: Files) => {
 							return code.replace(node.before, node.after);
 						}, code),
 					},
-			  ];
+				];
 	};
 };
 

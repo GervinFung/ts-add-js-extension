@@ -118,7 +118,7 @@ export default class File {
 										: {
 												file,
 												error,
-										  }
+											}
 								);
 							});
 						});
