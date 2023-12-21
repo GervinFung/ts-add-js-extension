@@ -173,7 +173,7 @@ export default class ParseArgs {
 					error: new Error(
 						`The pkg name "${name}" passed is invalid`
 					),
-			  };
+				};
 	};
 
 	private readonly tokenize = (args: Args) => {
