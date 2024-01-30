@@ -25,16 +25,16 @@ const getAllJSAndDTSFiles = (directory: string): Files => {
 	});
 };
 
-const readCode = (files: string) => {
+const readCode = (file: string) => {
 	return new Promise<string>((resolve, reject) => {
 		let fetchData = '';
 
-		fs.createReadStream(files)
+		fs.createReadStream(file)
 			.on('data', (data) => {
-				return (fetchData = data.toString());
+				fetchData = data.toString();
 			})
 			.on('end', () => {
-				return resolve(fetchData);
+				resolve(fetchData);
 			})
 			.on('error', reject);
 	});
@@ -42,11 +42,11 @@ const readCode = (files: string) => {
 
 const getAllJSAndDTSCodes = (files: Files) => {
 	return files.map(async (file) => {
-		return ts.createSourceFile(
-			file,
-			await readCode(file),
-			ts.ScriptTarget.ESNext
-		);
+		const code = await readCode(file);
+		return {
+			code,
+			parsed: ts.createSourceFile(file, code, ts.ScriptTarget.ESNext),
+		};
 	});
 };
 

@@ -22,6 +22,7 @@
 		"build"
 	],
 	"scripts": {
+		"postinstall": "pnpm prettier-config-generate",
 		"lint": "eslint . --ignore-path .gitignore --ext .ts --color",
 		"format": "prettier-config-generate && prettier .",
 		"format-write": "pnpm format --write",
