@@ -1,3 +1,7 @@
+# 1.6.1 (31 Jan 2024)
+
+-   (Fix) Read the proper code structure to know which part of import/export to update
+
 # 1.6.0 (13 Oct 2023)
 
 -   (Feat) Append `.js` extension to directory with type declaration/definitions only

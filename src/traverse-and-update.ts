@@ -135,27 +135,28 @@ const addJSExtension = (
 };
 
 const traverseAndUpdateFileWithJSExtension = (files: Files) => {
-	return (sourceFile: SourceFile) => {
-		const charactersDelimiter = '';
-		const code = sourceFile.getText();
-		const characters = code.split(charactersDelimiter);
+	return ({ parsed, code }: SourceFile) => {
+		const delimiter = '';
+		const characters = code.split(delimiter);
 
-		const replaceNodes = sourceFile.statements.flatMap((statement) => {
+		const file = parsed.fileName;
+
+		const replaceNodes = parsed.statements.flatMap((statement) => {
 			switch (statement.kind) {
 				case ts.SyntaxKind.ImportDeclaration:
 				case ts.SyntaxKind.ExportDeclaration: {
-					const imExDeclaration = statement as
+					const importExportDeclaration = statement as
 						| ts.ExportDeclaration
 						| ts.ImportDeclaration;
 
-					if (!imExDeclaration.moduleSpecifier) {
+					if (!importExportDeclaration.moduleSpecifier) {
 						return [];
 					}
 
 					const moduleSpecifier = asString({
 						// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 						// @ts-ignore
-						value: imExDeclaration.moduleSpecifier.text,
+						value: importExportDeclaration.moduleSpecifier.text,
 						error: new Error(
 							'Module specifier of node should have text'
 						),
@@ -167,7 +168,7 @@ const traverseAndUpdateFileWithJSExtension = (files: Files) => {
 							: moduleSpecifier.slice(0, -1),
 					})
 						.split(separator)
-						.pop();
+						.at(-1);
 
 					if (!fileName) {
 						throw new Error(
@@ -179,7 +180,7 @@ const traverseAndUpdateFileWithJSExtension = (files: Files) => {
 						const result = addJSExtension({
 							importPath: moduleSpecifier,
 							filePath: path.posix.join(
-								sourceFile.fileName,
+								file,
 								'..',
 								moduleSpecifier
 							),
@@ -188,7 +189,6 @@ const traverseAndUpdateFileWithJSExtension = (files: Files) => {
 						switch (result.procedure) {
 							case 'proceed': {
 								// if file name not included in list of js file read
-
 								if (
 									files.find((file) => {
 										return file.endsWith(
@@ -199,11 +199,13 @@ const traverseAndUpdateFileWithJSExtension = (files: Files) => {
 									const before = characters
 										.filter((_, index) => {
 											return (
-												index > imExDeclaration.pos &&
-												index < imExDeclaration.end
+												index >
+													importExportDeclaration.pos &&
+												index <
+													importExportDeclaration.end
 											);
 										})
-										.join(charactersDelimiter);
+										.join(delimiter);
 
 									return [
 										{
@@ -228,7 +230,7 @@ const traverseAndUpdateFileWithJSExtension = (files: Files) => {
 			? []
 			: [
 					{
-						file: sourceFile.fileName,
+						file,
 						code: replaceNodes.reduce((code, node) => {
 							return code.replace(node.before, node.after);
 						}, code),
