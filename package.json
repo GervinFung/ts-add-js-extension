@@ -1,7 +1,7 @@
 {
 	"name": "ts-add-js-extension",
 	"description": "Add .js extension to each relative ESM import and export statement in JavaScript file",
-	"version": "1.6.1",
+	"version": "1.6.2",
 	"license": "MIT",
 	"main": "./build/cjs/index.js",
 	"module": "./build/mjs/index.js",
@@ -22,7 +22,6 @@
 		"build"
 	],
 	"scripts": {
-		"postinstall": "pnpm prettier-config-generate",
 		"lint": "eslint . --ignore-path .gitignore --ext .ts --color",
 		"format": "prettier-config-generate && prettier .",
 		"format-write": "pnpm format --write",

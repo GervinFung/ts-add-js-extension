@@ -1,3 +1,7 @@
+# 1.6.2 (31 Jan 2024)
+
+-   (Fix) Remove faulty `postinstall` command
+
 # 1.6.1 (31 Jan 2024)
 
 -   (Fix) Read the proper code structure to know which part of import/export to update
