@@ -45,6 +45,7 @@
 	"devDependencies": {
 		"@poolofdeath20/eslint-config": "^0.3.2",
 		"@poolofdeath20/prettier-config-generator": "^0.0.1",
+		"@poolofdeath20/tsconfig": "^0.0.0",
 		"@types/node": "^20.11.7",
 		"@typescript-eslint/eslint-plugin": "^6.19.1",
 		"@typescript-eslint/parser": "^6.19.1",
