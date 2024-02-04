@@ -16,6 +16,9 @@ devDependencies:
   '@poolofdeath20/prettier-config-generator':
     specifier: ^0.0.1
     version: 0.0.1(prettier@3.2.4)
+  '@poolofdeath20/tsconfig':
+    specifier: ^0.0.0
+    version: 0.0.0
   '@types/node':
     specifier: ^20.11.7
     version: 20.11.7
@@ -389,6 +392,10 @@ packages:
       prettier: '*'
     dependencies:
       prettier: 3.2.4
+    dev: true
+
+  /@poolofdeath20/tsconfig@0.0.0:
+    resolution: {integrity: sha512-uCx/BjCjqU/ctWjWBtsB/nA0mX2/OWK2PU1PplOR5m4paRzvqMjhsSzuxjxhoZrAVES4l+Tx4vCoFa/K/vcuxQ==}
     dev: true
 
   /@rollup/rollup-android-arm-eabi@4.9.6:

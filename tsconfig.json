@@ -1,22 +1,4 @@
 {
-	"compilerOptions": {
-		"allowJs": false,
-		"checkJs": false,
-		"strict": true,
-		"skipLibCheck": false,
-		"noUnusedLocals": true,
-		"noUnusedParameters": true,
-		"noImplicitReturns": true,
-		"noFallthroughCasesInSwitch": true,
-		"forceConsistentCasingInFileNames": true,
-		"resolveJsonModule": true,
-		"noUncheckedIndexedAccess": true,
-		"pretty": true,
-		"verbatimModuleSyntax": true,
-		"noEmit": true,
-		"module": "esnext",
-		"moduleResolution": "bundler",
-	},
-	"include": ["**/*.ts"],
+	"extends": ["@poolofdeath20/tsconfig/node"],
 	"exclude": ["node_modules"],
 }
