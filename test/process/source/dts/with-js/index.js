@@ -1,2 +1,4 @@
 export * from './utils';
-export * from './utils/util.mjs';
+export * from './utils/util';
+export * from './components';
+export * from './components/component';

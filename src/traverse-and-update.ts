@@ -18,29 +18,36 @@ const checkJavaScriptFileExistByAppend = (
 		filePath: string;
 	}>
 ) => {
-	const { js } = ExtensionsUtil.extensions.javaScript;
+	const result = ExtensionsUtil.extensions.javaScript
+		.map((extension) => {
+			return {
+				extension,
+				filePath: `${props.filePath}${extension}`,
+			};
+		})
+		.find((filePath) => {
+			return fs.existsSync(filePath.filePath);
+		});
 
-	const jsFilePath = `${props.filePath}${js}`;
-
-	if (fs.existsSync(jsFilePath)) {
-		return { extension: js, filePath: jsFilePath };
-	}
-
-	return false;
+	return result ?? false;
 };
 
 const checkTypeDefinitionFileExistByAppend = (
-	props: Readonly<{
-		filePath: string;
-	}>
+	props: Parameters<typeof checkJavaScriptFileExistByAppend>[0]
 ) => {
-	const { js } = ExtensionsUtil.extensions.javaScript;
-	const { dts } = ExtensionsUtil.extensions.typeDefinition;
+	const [js, mjs] = ExtensionsUtil.extensions.javaScript;
+	const [dts, mdts] = ExtensionsUtil.extensions.typeDefinition;
 
 	const dtsFilePath = `${props.filePath}${dts}`;
 
 	if (fs.existsSync(dtsFilePath)) {
 		return { extension: js, filePath: dtsFilePath };
+	}
+
+	const mdtsFilePath = `${props.filePath}${mdts}`;
+
+	if (fs.existsSync(mdtsFilePath)) {
+		return { extension: mjs, filePath: mdtsFilePath };
 	}
 
 	return false;
@@ -70,41 +77,44 @@ const addJSExtensionConditionally = (
 		procedure: 'skip',
 	} as const;
 
-	if (!isDirectory(props.filePath)) {
-		const extensionResult = check({
-			filePath: props.filePath,
-		});
+	switch (isDirectory(props.filePath)) {
+		case true: {
+			const result = check({
+				filePath: path.posix.join(props.filePath, 'index'),
+			});
 
-		if (!extensionResult) {
-			return skip;
+			if (!result) {
+				return skip;
+			}
+
+			const file = `index${result.extension}`;
+
+			return {
+				procedure: 'proceed',
+				absolutePath: result.filePath,
+				importPath: formProperFilePath({
+					filePath: `${props.importPath}${separator}${file}`,
+				}),
+			} as const;
 		}
+		case false: {
+			const result = check({
+				filePath: props.filePath,
+			});
 
-		return {
-			procedure: 'proceed',
-			absolutePath: extensionResult.filePath,
-			importPath: formProperFilePath({
-				filePath: `${props.importPath}${extensionResult.extension}`,
-			}),
-		} as const;
+			if (!result) {
+				return skip;
+			}
+
+			return {
+				procedure: 'proceed',
+				absolutePath: result.filePath,
+				importPath: formProperFilePath({
+					filePath: `${props.importPath}${result.extension}`,
+				}),
+			} as const;
+		}
 	}
-
-	const extensionResult = check({
-		filePath: path.posix.join(props.filePath, 'index'),
-	});
-
-	if (!extensionResult) {
-		return skip;
-	}
-
-	const file = `index${extensionResult.extension}`;
-
-	return {
-		procedure: 'proceed',
-		absolutePath: extensionResult.filePath,
-		importPath: formProperFilePath({
-			filePath: [props.importPath, separator, file].join(''),
-		}),
-	} as const;
 };
 
 const addJSExtension = (
@@ -124,14 +134,17 @@ const addJSExtension = (
 		checkType: 'js',
 	});
 
-	if (result.procedure === 'proceed') {
-		return result;
+	switch (result.procedure) {
+		case 'proceed': {
+			return result;
+		}
+		case 'skip': {
+			return addJSExtensionConditionally({
+				...props,
+				checkType: 'dts',
+			});
+		}
 	}
-
-	return addJSExtensionConditionally({
-		...props,
-		checkType: 'dts',
-	});
 };
 
 const traverseAndUpdateFileWithJSExtension = (files: Files) => {
