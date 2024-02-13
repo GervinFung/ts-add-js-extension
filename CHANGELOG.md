@@ -1,3 +1,7 @@
+# 1.6.3 (31 Jan 2024)
+
+-   (Fix) Handle `.jsx` and `.mjs` also
+
 # 1.6.2 (31 Jan 2024)
 
 -   (Fix) Remove faulty `postinstall` command
