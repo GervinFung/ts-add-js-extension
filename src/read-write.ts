@@ -31,7 +31,7 @@ const readCode = (file: string) => {
 
 		fs.createReadStream(file)
 			.on('data', (data) => {
-				fetchData = data.toString();
+				fetchData += data.toString();
 			})
 			.on('end', () => {
 				resolve(fetchData);
