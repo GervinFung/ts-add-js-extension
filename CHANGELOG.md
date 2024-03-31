@@ -1,3 +1,7 @@
+# 1.6.4 (31 Mar 2024)
+
+-   (Fix) join `data` from `createReadStream` with array rather than assign to string
+
 # 1.6.3 (31 Jan 2024)
 
 -   (Fix) Handle `.jsx` and `.mjs` also
