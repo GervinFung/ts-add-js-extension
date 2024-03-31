@@ -27,14 +27,14 @@ const getAllJSAndDTSFiles = (directory: string): Files => {
 
 const readCode = (file: string) => {
 	return new Promise<string>((resolve, reject) => {
-		let fetchData = '';
+		const code = [] as string[];
 
 		fs.createReadStream(file)
 			.on('data', (data) => {
-				fetchData = data.toString();
+				code.push(data.toString());
 			})
 			.on('end', () => {
-				resolve(fetchData);
+				resolve(code.join(''));
 			})
 			.on('error', reject);
 	});
