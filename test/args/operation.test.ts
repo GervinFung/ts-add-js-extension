@@ -24,6 +24,7 @@ describe('Operation arguments parsing', () => {
 			});
 		}
 	);
+
 	it.each(delimiter)(
 		'should parse config when optional options are absent with assignment of %s',
 		(delimiter) => {
@@ -43,6 +44,7 @@ describe('Operation arguments parsing', () => {
 			});
 		}
 	);
+
 	it('should parse config and throw error when mandatory options are absent', () => {
 		expect(() => {
 			return ParseArgs.create(

@@ -10,6 +10,7 @@ describe('Config parsing', () => {
 			});
 		}).toThrowError();
 	});
+
 	it('should parse config when only non optional config options are given', () => {
 		expect(() => {
 			return parseConfig({

@@ -10,6 +10,7 @@ describe('Version argument parsing', () => {
 			).asVersion()
 		).toStrictEqual({ exists: false });
 	});
+
 	it('should parse config as help when help argument is given', () => {
 		expect(
 			ParseArgs.create(
