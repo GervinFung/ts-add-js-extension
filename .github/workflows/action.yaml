@@ -30,14 +30,17 @@ jobs:
             - name: Install Depedencies
               run: pnpm i
 
-            - name: Run Linter
+            - name: Generate Files
+              run: pnpm prebuild
+
+            - name: Lint Code
               run: pnpm lint
 
-            - name: Run Format Check
+            - name: Check Format
               run: pnpm format-check
 
             - name: Run Tests
               run: pnpm test
 
-            - name: Run Build
+            - name: Produce Build
               run: pnpm build
