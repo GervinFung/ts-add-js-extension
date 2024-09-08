@@ -22,7 +22,7 @@
 		"build"
 	],
 	"scripts": {
-		"lint": "eslint . --ignore-path .gitignore --ext .ts --color",
+		"lint": "eslint . --color",
 		"format": "prettier-config-generate && prettier .",
 		"format-write": "pnpm format --write",
 		"format-check": "pnpm format --check",
@@ -43,18 +43,18 @@
 		"typescript": "^5.5.4"
 	},
 	"devDependencies": {
-		"@poolofdeath20/eslint-config": "^0.3.4",
+		"@poolofdeath20/eslint-config": "^0.4.0",
 		"@poolofdeath20/prettier-config-generator": "^0.0.1",
-		"@poolofdeath20/tsconfig": "^0.1.0",
-		"@types/node": "^20.14.12",
-		"@typescript-eslint/eslint-plugin": "^7.17.0",
-		"@typescript-eslint/parser": "^7.17.0",
-		"eslint": "^8.57.0",
+		"@poolofdeath20/tsconfig": "^0.1.1",
+		"@types/node": "^22.5.4",
+		"@typescript-eslint/eslint-plugin": "^8.4.0",
+		"@typescript-eslint/parser": "^8.4.0",
+		"eslint": "^9.10.0",
 		"node-package-helper": "github:GervinFung/node-package-helper",
 		"prettier": "^3.3.3",
 		"shx": "^0.3.4",
-		"vite-node": "^2.0.4",
-		"vitest": "^2.0.4"
+		"vite-node": "^2.0.5",
+		"vitest": "^2.0.5"
 	},
 	"keywords": [
 		"esm",

@@ -1,7 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import { guard } from './type';
+
 import pkg from './package';
+import { guard } from './type';
 
 const commandKeyWords = {
 	help: {
@@ -136,7 +137,7 @@ type Token = Readonly<{
 	value: string;
 }>;
 
-export default class ParseArgs {
+class ParseArgs {
 	private readonly tokens: ReadonlyArray<Token>;
 
 	private constructor(args: Args) {
@@ -265,7 +266,7 @@ export default class ParseArgs {
 			})
 			.forEach((node) => {
 				return console.log(
-					`The "${node.token}" in the command is invalid as ${node.reason}. So please remove it`
+					`The "${JSON.stringify(node.token, undefined, 4)}" in the command is invalid as ${node.reason}. So please remove it`
 				);
 			});
 
@@ -277,7 +278,7 @@ export default class ParseArgs {
 			dir: guard({
 				value: nodes.find((node) => {
 					return node.type === 'dir';
-				})?.value as ReturnType<TokenParser['parseDir']>['value'],
+				})?.value,
 				error: new Error(
 					'dir is a mandatory field, it should be present to know which dir it should operate on'
 				),
@@ -285,10 +286,10 @@ export default class ParseArgs {
 			// optional
 			include: nodes.find((node) => {
 				return node.type === 'include';
-			})?.value as ReturnType<TokenParser['parseInclude']>['value'],
+			})?.value,
 			showChanges: nodes.find((node) => {
 				return node.type === 'showchanges';
-			})?.value as ReturnType<TokenParser['parseShowChanges']>['value'],
+			})?.value,
 		} as const;
 	};
 }
@@ -298,3 +299,5 @@ type TrueConfig = ReturnType<ParseArgs['asOperation']>;
 type PartialConfig = Partial<Omit<TrueConfig, 'dir'>> & Pick<TrueConfig, 'dir'>;
 
 export type { TrueConfig, PartialConfig };
+
+export default ParseArgs;

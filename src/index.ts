@@ -1,6 +1,9 @@
-import File from './read-write';
-import ParseArgs, { type PartialConfig } from './cli-command-parser';
-import { parseConfig, valuelizeConfig, type ParsedConfig } from './config';
+import type { PartialConfig } from './cli-command-parser';
+import type { ParsedConfig } from './config';
+
+import ParseArgs from './cli-command-parser';
+import { parseConfig, valuelizeConfig } from './config';
+import { writeMany, findMany } from './read-write';
 
 const tsAddJsExtension = async ({
 	config,
@@ -39,11 +42,10 @@ const tsAddJsExtension = async ({
 	}
 
 	const trueConfig = valuelizeConfig(config);
-	const file = File.create();
 
-	return file.writeMany({
+	return writeMany({
 		showChanges: trueConfig.showChanges,
-		withJSExtension: await file.findMany(trueConfig),
+		withJSExtension: await findMany(trueConfig),
 	});
 };
 

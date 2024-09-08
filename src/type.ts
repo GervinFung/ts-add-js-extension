@@ -5,9 +5,10 @@ const guard = <T, Err extends Error>(
 	}>
 ) => {
 	const t = props.value;
-	if (t !== undefined && t != null) {
+	if (t !== undefined && t !== null) {
 		return t;
 	}
+	// eslint-disable-next-line @typescript-eslint/only-throw-error
 	throw props.error;
 };
 

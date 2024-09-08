@@ -1,10 +1,13 @@
+import type { PartialConfig } from './cli-command-parser';
+
 import fs from 'fs';
 import path from 'path';
+
 import ts from 'typescript';
-import type { PartialConfig } from './cli-command-parser';
-import traverseAndUpdateFileWithJSExtension from './traverse-and-update';
-import { ExtensionsUtil, separator } from './const';
+
+import { matchEither, separator } from './const';
 import Log from './log';
+import traverseAndUpdateFileWithJSExtension from './traverse-and-update';
 
 type SourceFile = Awaited<ReturnType<typeof getAllJSAndDTSCodes>[0]>;
 
@@ -21,13 +24,13 @@ const getAllJSAndDTSFiles = (directory: string): Files => {
 			return getAllJSAndDTSFiles(filePath);
 		}
 
-		return !ExtensionsUtil.matchEither(filePath) ? [] : [filePath];
+		return !matchEither(filePath) ? [] : [filePath];
 	});
 };
 
 const readCode = (file: string) => {
 	return new Promise<string>((resolve, reject) => {
-		const code = [] as string[];
+		const code = [] as Array<string>;
 
 		fs.createReadStream(file)
 			.on('data', (data) => {
@@ -50,96 +53,82 @@ const getAllJSAndDTSCodes = (files: Files) => {
 	});
 };
 
-export default class File {
-	private constructor() {}
+const findMany = async (
+	props: Readonly<{
+		dir: PartialConfig['dir'];
+		include: ReadonlyArray<string>;
+	}>
+) => {
+	// user may import files from `common` into `src`
+	const files = props.include.concat(props.dir).flatMap(getAllJSAndDTSFiles);
 
-	static readonly create = () => {
-		return new this();
-	};
+	return (await Promise.all(getAllJSAndDTSCodes(files))).flatMap(
+		traverseAndUpdateFileWithJSExtension(files)
+	);
+};
 
-	readonly findMany = async (
-		props: Readonly<{
-			dir: PartialConfig['dir'];
-			include: ReadonlyArray<string>;
-		}>
-	) => {
-		// user may import files from `common` into `src`
-		const files = props.include
-			.concat(props.dir)
-			.flatMap(getAllJSAndDTSFiles);
+const writeMany = async (
+	props: Readonly<{
+		showChanges: boolean;
+		withJSExtension: ReturnType<
+			ReturnType<typeof traverseAndUpdateFileWithJSExtension>
+		>;
+	}>
+) => {
+	const repeat = props.withJSExtension.reduce((longestFileName, { file }) => {
+		return longestFileName?.length <= file.length ? file : longestFileName;
+	}, '').length;
 
-		return (await Promise.all(getAllJSAndDTSCodes(files))).flatMap(
-			traverseAndUpdateFileWithJSExtension(files)
-		);
-	};
+	const log = !(props.withJSExtension.length && props.showChanges)
+		? undefined
+		: Log.fromNumberOfFiles(props.withJSExtension.length);
 
-	readonly writeMany = async (
-		props: Readonly<{
-			showChanges: boolean;
-			withJSExtension: ReturnType<
-				ReturnType<typeof traverseAndUpdateFileWithJSExtension>
-			>;
-		}>
-	) => {
-		const repeat = props.withJSExtension.reduce(
-			(longestFileName, { file }) => {
-				return longestFileName?.length <= file.length
-					? file
-					: longestFileName;
-			},
-			''
-		).length;
-
-		const log = !(props.withJSExtension.length && props.showChanges)
-			? undefined
-			: Log.fromNumberOfFiles(props.withJSExtension.length);
-
-		try {
-			const errors = (
-				await Promise.all(
-					props.withJSExtension.map(({ code, file }) => {
-						return new Promise<
-							| undefined
-							| Readonly<{
-									file: string;
-									error: NodeJS.ErrnoException;
-							  }>
-						>((resolve) => {
-							return fs.writeFile(file, code, (error) => {
-								log?.increment({
-									repeat,
-									file,
-									succeed: !error,
-								});
-
-								resolve(
-									!error
-										? undefined
-										: {
-												file,
-												error,
-											}
-								);
+	try {
+		const errors = (
+			await Promise.all(
+				props.withJSExtension.map(({ code, file }) => {
+					return new Promise<
+						| undefined
+						| Readonly<{
+								file: string;
+								error: NodeJS.ErrnoException;
+						  }>
+					>((resolve) => {
+						return fs.writeFile(file, code, (error) => {
+							log?.increment({
+								repeat,
+								file,
+								succeed: !error,
 							});
+
+							resolve(
+								!error
+									? undefined
+									: {
+											file,
+											error,
+										}
+							);
 						});
-					})
-				)
-			).flatMap((element) => {
-				return !element ? [] : [element];
-			});
+					});
+				})
+			)
+		).flatMap((element) => {
+			return !element ? [] : [element];
+		});
 
-			log?.end({ errors });
+		log?.end({ errors });
 
-			return {
-				type: 'done',
-			} as const;
-		} catch (error) {
-			return {
-				type: 'error',
-				error,
-			} as const;
-		}
-	};
-}
+		return {
+			type: 'done',
+		} as const;
+	} catch (error) {
+		return {
+			type: 'error',
+			error,
+		} as const;
+	}
+};
 
 export type { SourceFile, Files };
+export { findMany, writeMany };

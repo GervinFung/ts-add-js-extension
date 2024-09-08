@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import ParseArgs from '../../src/cli-command-parser';
+
 import pkg from '../../package.json';
+import ParseArgs from '../../src/cli-command-parser';
 
 describe('Version argument parsing', () => {
 	it('should parse config as help when help argument is absent', () => {
