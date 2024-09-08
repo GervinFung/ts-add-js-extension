@@ -24,12 +24,6 @@ importers:
       '@types/node':
         specifier: ^22.5.4
         version: 22.5.4
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^8.4.0
-        version: 8.4.0(@typescript-eslint/parser@8.4.0(eslint@9.10.0)(typescript@5.5.4))(eslint@9.10.0)(typescript@5.5.4)
-      '@typescript-eslint/parser':
-        specifier: ^8.4.0
-        version: 8.4.0(eslint@9.10.0)(typescript@5.5.4)
       eslint:
         specifier: ^9.10.0
         version: 9.10.0
