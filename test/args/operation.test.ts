@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+
 import ParseArgs from '../../src/cli-command-parser';
 
 describe('Operation arguments parsing', () => {

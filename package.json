@@ -22,7 +22,7 @@
 		"build"
 	],
 	"scripts": {
-		"lint": "eslint . --ignore-path .gitignore --ext .ts --color",
+		"lint": "eslint . --color",
 		"format": "prettier-config-generate && prettier .",
 		"format-write": "pnpm format --write",
 		"format-check": "pnpm format --check",
@@ -49,7 +49,7 @@
 		"@types/node": "^22.5.4",
 		"@typescript-eslint/eslint-plugin": "^8.4.0",
 		"@typescript-eslint/parser": "^8.4.0",
-		"eslint": "^8.57.0",
+		"eslint": "^9.10.0",
 		"node-package-helper": "github:GervinFung/node-package-helper",
 		"prettier": "^3.3.3",
 		"shx": "^0.3.4",

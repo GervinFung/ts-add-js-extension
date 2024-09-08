@@ -1,4 +1,4 @@
 #!/usr/bin/env node
-import main from './';
+import main from '.';
 
-main(process.argv.join(' '));
+void main(process.argv.join(' '));

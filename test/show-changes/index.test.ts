@@ -1,5 +1,6 @@
-import Log from '../../src/log';
 import { describe, it, expect } from 'vitest';
+
+import Log from '../../src/log';
 
 describe('Log', () => {
 	it('should create Log instance when there is at least one file to be changed', () => {

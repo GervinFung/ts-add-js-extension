@@ -1,5 +1,6 @@
-import { parseConfig } from '../../src';
 import { describe, it, expect } from 'vitest';
+
+import { parseConfig } from '../../src';
 
 describe('Config parsing', () => {
 	it('should throw error when parsing config the old way', () => {

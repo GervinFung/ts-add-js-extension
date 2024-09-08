@@ -1,4 +1,0 @@
-{
-	"extends": ["@poolofdeath20/eslint-config/node"],
-	"ignorePatterns": ["test/sample/**", "test/output/**"]
-}

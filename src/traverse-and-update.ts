@@ -1,8 +1,11 @@
+import type { SourceFile, Files } from './read-write';
+
 import fs from 'fs';
 import path from 'path';
+
 import ts from 'typescript';
-import type { SourceFile, Files } from './read-write';
-import { ExtensionsUtil, separator } from './const';
+
+import { extensions, matchJs, separator } from './const';
 import { asString } from './type';
 
 const formProperFilePath = (
@@ -18,7 +21,7 @@ const checkJavaScriptFileExistByAppend = (
 		filePath: string;
 	}>
 ) => {
-	const result = ExtensionsUtil.extensions.javaScript
+	const result = extensions.javaScript
 		.map((extension) => {
 			return {
 				extension,
@@ -35,8 +38,8 @@ const checkJavaScriptFileExistByAppend = (
 const checkTypeDefinitionFileExistByAppend = (
 	props: Parameters<typeof checkJavaScriptFileExistByAppend>[0]
 ) => {
-	const [js, mjs] = ExtensionsUtil.extensions.javaScript;
-	const [dts, mdts] = ExtensionsUtil.extensions.typeDefinition;
+	const [js, mjs] = extensions.javaScript;
+	const [dts, mdts] = extensions.typeDefinition;
 
 	const dtsFilePath = `${props.filePath}${dts}`;
 
@@ -56,7 +59,7 @@ const checkTypeDefinitionFileExistByAppend = (
 const isDirectory = (filePath: string) => {
 	try {
 		return fs.lstatSync(filePath).isDirectory();
-	} catch (error) {
+	} catch (ignoreError) {
 		return false;
 	}
 };
@@ -123,7 +126,7 @@ const addJSExtension = (
 		importPath: string;
 	}>
 ): ReturnType<typeof addJSExtensionConditionally> => {
-	if (ExtensionsUtil.matchJs(props.filePath)) {
+	if (matchJs(props.filePath)) {
 		return {
 			procedure: 'skip',
 		};

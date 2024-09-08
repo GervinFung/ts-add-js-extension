@@ -1,7 +1,10 @@
 import fs from 'fs';
 import path from 'path';
+
 import { describe, it, expect } from 'vitest';
+
 import { tsAddJsExtension } from '../../src';
+
 describe('ts add js extension', () => {
 	const getPath = (subPath: string) => {
 		return path.join(__dirname, subPath);
