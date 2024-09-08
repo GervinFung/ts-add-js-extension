@@ -45,16 +45,16 @@
 	"devDependencies": {
 		"@poolofdeath20/eslint-config": "^0.3.4",
 		"@poolofdeath20/prettier-config-generator": "^0.0.1",
-		"@poolofdeath20/tsconfig": "^0.1.0",
-		"@types/node": "^20.14.12",
-		"@typescript-eslint/eslint-plugin": "^7.17.0",
-		"@typescript-eslint/parser": "^7.17.0",
+		"@poolofdeath20/tsconfig": "^0.1.1",
+		"@types/node": "^20.16.5",
+		"@typescript-eslint/eslint-plugin": "^7.18.0",
+		"@typescript-eslint/parser": "^7.18.0",
 		"eslint": "^8.57.0",
 		"node-package-helper": "github:GervinFung/node-package-helper",
 		"prettier": "^3.3.3",
 		"shx": "^0.3.4",
-		"vite-node": "^2.0.4",
-		"vitest": "^2.0.4"
+		"vite-node": "^2.0.5",
+		"vitest": "^2.0.5"
 	},
 	"keywords": [
 		"esm",
