@@ -4,7 +4,6 @@
 	"exclude": [
 		"node_modules",
 		"test/process/source/**",
-		"test/process/expected-result/**",
-		"packages/**/build"
+		"test/process/expected-result/**"
 	]
 }
