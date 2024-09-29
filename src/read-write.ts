@@ -76,7 +76,7 @@ const writeMany = async (
 	}>
 ) => {
 	const repeat = props.withJSExtension.reduce((longestFileName, { file }) => {
-		return longestFileName?.length <= file.length ? file : longestFileName;
+		return longestFileName.length <= file.length ? file : longestFileName;
 	}, '').length;
 
 	const log = !(props.withJSExtension.length && props.showChanges)

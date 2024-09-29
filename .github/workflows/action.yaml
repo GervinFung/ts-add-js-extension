@@ -9,8 +9,8 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                node: [18, 20]
                 os: [ubuntu-latest, windows-latest]
+                node-version: [18, 20, 22]
                 threads: [4]
 
         name: Test with Node ${{ matrix.node-version }} on ${{ matrix.os }}
@@ -20,7 +20,7 @@ jobs:
 
             - uses: pnpm/action-setup@v4
               with:
-                  version: 8
+                  version: 9
             - name: Use Node.js ${{ matrix.node-version }}
               uses: actions/setup-node@v3
               with:

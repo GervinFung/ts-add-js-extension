@@ -38,11 +38,13 @@ class TokenParser {
 
 	readonly parseVersion = () => {
 		const { keyword } = commandKeyWords.version;
+
 		if (this.token.key !== keyword) {
 			return {
 				exists: false,
 			} as const;
 		}
+
 		return {
 			type: keyword,
 			exists: true,
@@ -52,11 +54,13 @@ class TokenParser {
 
 	readonly parseHelp = () => {
 		const { keyword } = commandKeyWords.help;
+
 		if (this.token.key !== commandKeyWords.help.keyword) {
 			return {
 				exists: false,
 			} as const;
 		}
+
 		return {
 			type: keyword,
 			exists: true,
@@ -66,6 +70,7 @@ class TokenParser {
 
 	readonly parseDir = () => {
 		const { keyword } = commandKeyWords.dir;
+
 		if (this.token.key !== commandKeyWords.dir.keyword) {
 			return {
 				exists: false,
@@ -86,6 +91,7 @@ class TokenParser {
 
 	readonly parseInclude = () => {
 		const { keyword } = commandKeyWords.include;
+
 		if (this.token.key !== commandKeyWords.include.keyword) {
 			return {
 				exists: false,
@@ -101,7 +107,9 @@ class TokenParser {
 
 	readonly parseShowChanges = () => {
 		const { keyword } = commandKeyWords.showChanges;
+
 		const { key, value } = this.token;
+
 		if (key !== commandKeyWords.showChanges.keyword) {
 			return {
 				exists: false,
@@ -146,9 +154,11 @@ class ParseArgs {
 
 	static readonly create = (arg: string) => {
 		const tokens = arg.split(commandKeyWords.assignment.key);
-		const name = ParseArgs.checkPackageName(tokens.at(0));
-		if (name !== 'proceed') {
-			throw name.error;
+
+		const result = ParseArgs.checkPackageName(tokens.at(0));
+
+		if (result.isInvalid) {
+			throw result.error;
 		}
 
 		if (tokens.includes('add')) {
@@ -156,25 +166,32 @@ class ParseArgs {
 				'The "add" in the command can be removed, as it is only used for backward compatibility'
 			);
 		}
+
 		return new this(
 			tokens
 				.map((token) => {
 					return token === 'add' ? '' : token;
 				})
-				.filter((_, index) => {
-					return index;
-				})
+				.slice(1)
 		);
 	};
 
 	private static readonly checkPackageName = (name: string | undefined) => {
-		return name?.includes(pkg.name ?? '')
-			? 'proceed'
-			: {
+		const packageName = guard({
+			value: name,
+			error: new Error('The pkg name is undefined'),
+		});
+
+		return packageName.includes(pkg.name)
+			? ({
+					isInvalid: false,
+				} as const)
+			: ({
+					isInvalid: true,
 					error: new Error(
-						`The pkg name "${name}" passed is invalid`
+						`The pkg name "${packageName}" passed is invalid`
 					),
-				};
+				} as const);
 	};
 
 	private readonly tokenize = (args: Args) => {
@@ -186,10 +203,18 @@ class ParseArgs {
 					return [arg];
 				}
 
-				const [key, ...value] = arg.split(' ');
+				const [nullableKey, ...value] = arg.split(' ');
+
+				const key = guard({
+					value: nullableKey,
+					error: new Error(
+						'Key cannot be undefined after being split'
+					),
+				});
+
 				return [`${key}${assign}${value.join(' ')}`];
 			})
-			.map((args): Token => {
+			.map((args) => {
 				const [key, value] = args.split(assign);
 
 				return {
@@ -205,7 +230,7 @@ class ParseArgs {
 							'Value cannot be undefined after being flat mapped'
 						),
 					}).trim(),
-				};
+				} as Token;
 			});
 	};
 
@@ -217,7 +242,9 @@ class ParseArgs {
 				}
 				return new TokenParser(token).parseVersion();
 			},
-			{ exists: false } as ReturnType<TokenParser['parseVersion']>
+			{
+				exists: false,
+			} as ReturnType<TokenParser['parseVersion']>
 		);
 	};
 
@@ -265,7 +292,7 @@ class ParseArgs {
 				return node.type !== 'invalid' ? [] : [node];
 			})
 			.forEach((node) => {
-				return console.log(
+				console.log(
 					`The "${JSON.stringify(node.token, undefined, 4)}" in the command is invalid as ${node.reason}. So please remove it`
 				);
 			});

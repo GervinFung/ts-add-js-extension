@@ -18,7 +18,7 @@ const matchDts = (filePath: string) => {
 };
 
 const matchEither = (filePath: string) => {
-	return matchJs(filePath) || matchDts(filePath);
+	return matchJs(filePath) ?? matchDts(filePath);
 };
 
 export { extensions, matchJs, matchDts, matchEither, separator };
