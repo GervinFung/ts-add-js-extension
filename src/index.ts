@@ -7,6 +7,7 @@ import { writeMany, findMany } from './read-write';
 
 const tsAddJsExtension = async ({
 	config,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	parsedConfigFunction,
 }: Readonly<{
 	config: PartialConfig;
@@ -73,7 +74,9 @@ const main = (args: string) => {
 				}
 			}
 		})
-		.catch(console.error);
+		.catch((error: unknown) => {
+			console.error(error);
+		});
 };
 
 export { parseConfig, tsAddJsExtension };
