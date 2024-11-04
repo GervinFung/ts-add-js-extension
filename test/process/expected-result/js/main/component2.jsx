@@ -1,1 +1,1 @@
-import Component from './component.jsx';
+import Component from "./component.jsx";
