@@ -3,10 +3,10 @@ import type { SourceFile, Files } from './read-write';
 import fs from 'fs';
 import path from 'path';
 
-import ts from 'typescript';
+import tsc from 'typescript';
 
 import { extensions, matchJs, separator } from './const';
-import { asString } from './type';
+import { asString, guard } from './type';
 
 const formProperFilePath = (
 	props: Readonly<{
@@ -56,12 +56,8 @@ const checkTypeDefinitionFileExistByAppend = (
 	return false;
 };
 
-const isDirectory = (filePath: string) => {
-	try {
-		return fs.lstatSync(filePath).isDirectory();
-	} catch (ignoreError) {
-		return false;
-	}
+const isDirectory = (path: string) => {
+	return fs.existsSync(path) && fs.lstatSync(path).isDirectory();
 };
 
 const addJSExtensionConditionally = (
@@ -80,44 +76,41 @@ const addJSExtensionConditionally = (
 		procedure: 'skip',
 	} as const;
 
-	switch (isDirectory(props.filePath)) {
-		case true: {
-			const result = check({
-				filePath: path.posix.join(props.filePath, 'index'),
-			});
+	if (isDirectory(props.filePath)) {
+		const result = check({
+			filePath: path.posix.join(props.filePath, 'index'),
+		});
 
-			if (!result) {
-				return skip;
-			}
-
-			const file = `index${result.extension}`;
-
-			return {
-				procedure: 'proceed',
-				absolutePath: result.filePath,
-				importPath: formProperFilePath({
-					filePath: `${props.importPath}${separator}${file}`,
-				}),
-			} as const;
+		if (!result) {
+			return skip;
 		}
-		case false: {
-			const result = check({
-				filePath: props.filePath,
-			});
 
-			if (!result) {
-				return skip;
-			}
+		const file = `index${result.extension}`;
 
-			return {
-				procedure: 'proceed',
-				absolutePath: result.filePath,
-				importPath: formProperFilePath({
-					filePath: `${props.importPath}${result.extension}`,
-				}),
-			} as const;
-		}
+		return {
+			procedure: 'proceed',
+			absolutePath: result.filePath,
+			importPath: formProperFilePath({
+				filePath: `${props.importPath}${separator}${file}`,
+			}),
+		} as const;
 	}
+
+	const result = check({
+		filePath: props.filePath,
+	});
+
+	if (!result) {
+		return skip;
+	}
+
+	return {
+		procedure: 'proceed',
+		absolutePath: result.filePath,
+		importPath: formProperFilePath({
+			filePath: `${props.importPath}${result.extension}`,
+		}),
+	} as const;
 };
 
 const addJSExtension = (
@@ -125,11 +118,11 @@ const addJSExtension = (
 		filePath: string;
 		importPath: string;
 	}>
-): ReturnType<typeof addJSExtensionConditionally> => {
+) => {
 	if (matchJs(props.filePath)) {
 		return {
 			procedure: 'skip',
-		};
+		} as const;
 	}
 
 	const result = addJSExtensionConditionally({
@@ -150,109 +143,158 @@ const addJSExtension = (
 	}
 };
 
-const traverseAndUpdateFileWithJSExtension = (files: Files) => {
-	return ({ parsed, code }: SourceFile) => {
-		const delimiter = '';
-		const characters = code.split(delimiter);
+const moduleSpecifier = (
+	props: Readonly<{
+		file: string;
+		files: Files;
+		node: tsc.ImportDeclaration | tsc.ExportDeclaration;
+	}>
+) => {
+	if (!props.node.moduleSpecifier) {
+		return undefined;
+	}
 
-		const file = parsed.fileName;
+	const moduleSpecifier = asString({
+		// @ts-expect-error: text is string
+		value: props.node.moduleSpecifier.text,
+		error: new Error('Module specifier of node should have text'),
+	});
 
-		const replaceNodes = parsed.statements.flatMap((statement) => {
-			switch (statement.kind) {
-				case ts.SyntaxKind.ImportDeclaration:
-				case ts.SyntaxKind.ExportDeclaration: {
-					const importExportDeclaration = statement as
-						| ts.ExportDeclaration
-						| ts.ImportDeclaration;
+	if (!moduleSpecifier.startsWith('.')) {
+		return undefined;
+	}
 
-					if (!importExportDeclaration.moduleSpecifier) {
-						return [];
-					}
+	const result = addJSExtension({
+		importPath: moduleSpecifier,
+		filePath: path.posix.join(props.file, '..', moduleSpecifier),
+	});
 
-					const moduleSpecifier = asString({
-						// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-						// @ts-ignore
-						value: importExportDeclaration.moduleSpecifier.text,
-						error: new Error(
-							'Module specifier of node should have text'
-						),
-					});
+	switch (result.procedure) {
+		case 'proceed': {
+			if (
+				props.files.find((file) => {
+					return file.endsWith(result.absolutePath);
+				})
+			) {
+				return result.importPath;
+			}
+		}
+	}
 
-					const fileName = formProperFilePath({
-						filePath: !moduleSpecifier.endsWith(separator)
-							? moduleSpecifier
-							: moduleSpecifier.slice(0, -1),
-					})
-						.split(separator)
-						.at(-1);
+	return undefined;
+};
 
-					if (!fileName) {
-						throw new Error(
-							`Impossible for file name to be non-existent for ${moduleSpecifier}`
-						);
-					}
+const updateImportExport = (
+	context: tsc.TransformationContext,
+	fileInfo: Readonly<
+		Omit<Parameters<typeof moduleSpecifier>[0], 'node'> & {
+			updatedFiles: Set<string>;
+		}
+	>
+) => {
+	return (parent: tsc.Node) => {
+		const node = tsc.visitEachChild(
+			parent,
+			updateImportExport(context, fileInfo),
+			context
+		);
 
-					if (moduleSpecifier.startsWith('.')) {
-						const result = addJSExtension({
-							importPath: moduleSpecifier,
-							filePath: path.posix.join(
-								file,
-								'..',
-								moduleSpecifier
-							),
-						});
+		if (tsc.isImportDeclaration(node)) {
+			const text = moduleSpecifier({
+				...fileInfo,
+				node,
+			});
 
-						switch (result.procedure) {
-							case 'proceed': {
-								// if file name not included in list of js file read
-								if (
-									files.find((file) => {
-										return file.endsWith(
-											result.absolutePath
-										);
-									})
-								) {
-									const before = characters
-										.filter((_, index) => {
-											return (
-												index >
-													importExportDeclaration.pos &&
-												index <
-													importExportDeclaration.end
-											);
-										})
-										.join(delimiter);
-
-									return [
-										{
-											before,
-											after: before.replace(
-												moduleSpecifier,
-												result.importPath
-											),
-										},
-									];
-								}
-							}
-						}
-					}
-				}
+			if (!text) {
+				return node;
 			}
 
-			return [];
-		});
+			fileInfo.updatedFiles.add(fileInfo.file);
 
-		return !replaceNodes.length
-			? []
-			: [
-					{
-						file,
-						code: replaceNodes.reduce((code, node) => {
-							return code.replace(node.before, node.after);
-						}, code),
-					},
-				];
+			return context.factory.updateImportDeclaration(
+				node,
+				undefined,
+				node.importClause,
+				{
+					...node.moduleSpecifier,
+					// @ts-expect-error: text is string
+					text,
+				},
+				undefined
+			);
+		} else if (tsc.isExportDeclaration(node)) {
+			const text = moduleSpecifier({
+				...fileInfo,
+				node,
+			});
+
+			if (!text) {
+				return node;
+			}
+
+			fileInfo.updatedFiles.add(fileInfo.file);
+
+			return context.factory.updateExportDeclaration(
+				node,
+				undefined,
+				node.isTypeOnly,
+				node.exportClause,
+				{
+					...node.moduleSpecifier,
+					// @ts-expect-error: text is string
+					text,
+				},
+				undefined
+			);
+		}
+
+		return node;
 	};
 };
 
-export default traverseAndUpdateFileWithJSExtension;
+const traverse = (props: Parameters<typeof updateImportExport>[1]) => {
+	return (context: tsc.TransformationContext) => {
+		return (rootNode: tsc.Node) => {
+			return tsc.visitNode(rootNode, updateImportExport(context, props));
+		};
+	};
+};
+
+const traverseAndUpdateFile = (files: Files) => {
+	const printer = tsc.createPrinter();
+
+	const updatedFiles = new Set<string>();
+
+	return (source: SourceFile) => {
+		const { fileName: file } = source.parsed;
+
+		const transformer = traverse({
+			files,
+			file,
+			updatedFiles,
+		});
+
+		const code = printer.printNode(
+			tsc.EmitHint.Unspecified,
+			guard({
+				value: tsc.transform(source.parsed, [transformer])
+					.transformed[0],
+				error: new Error('Transformer should have a transformed value'),
+			}),
+			tsc.createSourceFile('', '', tsc.ScriptTarget.Latest)
+		);
+
+		if (!updatedFiles.has(file)) {
+			return [];
+		}
+
+		return [
+			{
+				file,
+				code,
+			},
+		];
+	};
+};
+
+export default traverseAndUpdateFile;

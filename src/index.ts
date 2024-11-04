@@ -46,7 +46,7 @@ const tsAddJsExtension = async ({
 
 	return writeMany({
 		showChanges: trueConfig.showChanges,
-		withJSExtension: await findMany(trueConfig),
+		foundMany: await findMany(trueConfig),
 	});
 };
 

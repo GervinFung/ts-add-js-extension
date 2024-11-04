@@ -3,11 +3,11 @@ import type { PartialConfig } from './cli-command-parser';
 import fs from 'fs';
 import path from 'path';
 
-import ts from 'typescript';
+import tsc from 'typescript';
 
 import { matchEither, separator } from './const';
 import Log from './log';
-import traverseAndUpdateFileWithJSExtension from './traverse-and-update';
+import traverseAndUpdateFile from './traverse-and-update';
 
 type SourceFile = Awaited<ReturnType<typeof getAllJSAndDTSCodes>[0]>;
 
@@ -47,8 +47,9 @@ const getAllJSAndDTSCodes = (files: Files) => {
 	return files.map(async (file) => {
 		const code = await readCode(file);
 		return {
+			file,
 			code,
-			parsed: ts.createSourceFile(file, code, ts.ScriptTarget.ESNext),
+			parsed: tsc.createSourceFile(file, code, tsc.ScriptTarget.ESNext),
 		};
 	});
 };
@@ -62,31 +63,34 @@ const findMany = async (
 	// user may import files from `common` into `src`
 	const files = props.include.concat(props.dir).flatMap(getAllJSAndDTSFiles);
 
-	return (await Promise.all(getAllJSAndDTSCodes(files))).flatMap(
-		traverseAndUpdateFileWithJSExtension(files)
-	);
+	return await Promise.all(getAllJSAndDTSCodes(files));
 };
 
 const writeMany = async (
 	props: Readonly<{
 		showChanges: boolean;
-		withJSExtension: ReturnType<
-			ReturnType<typeof traverseAndUpdateFileWithJSExtension>
-		>;
+		foundMany: Awaited<ReturnType<typeof findMany>>;
 	}>
 ) => {
-	const repeat = props.withJSExtension.reduce((longestFileName, { file }) => {
-		return longestFileName.length <= file.length ? file : longestFileName;
-	}, '').length;
+	const files = props.foundMany.map((data) => {
+		return data.file;
+	});
 
-	const log = !(props.withJSExtension.length && props.showChanges)
+	const transformed = props.foundMany.flatMap(traverseAndUpdateFile(files));
+
+
+	const repeat = transformed.reduce((longestFileName, { file }) => {
+		return Math.max(longestFileName, file.length);
+	}, 0);
+
+	const log = !(transformed.length && props.showChanges)
 		? undefined
-		: Log.fromNumberOfFiles(props.withJSExtension.length);
+		: Log.fromNumberOfFiles(transformed.length);
 
 	try {
 		const errors = (
 			await Promise.all(
-				props.withJSExtension.map(({ code, file }) => {
+				transformed.map(({ code, file }) => {
 					return new Promise<
 						| undefined
 						| Readonly<{
