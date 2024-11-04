@@ -78,7 +78,6 @@ const writeMany = async (
 
 	const transformed = props.foundMany.flatMap(traverseAndUpdateFile(files));
 
-
 	const repeat = transformed.reduce((longestFileName, { file }) => {
 		return Math.max(longestFileName, file.length);
 	}, 0);
