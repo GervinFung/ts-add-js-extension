@@ -6,7 +6,20 @@ import path from 'path';
 import tsc from 'typescript';
 
 import { extensions, matchJs, separator } from './const';
-import { asString, guard } from './type';
+import { guard } from './type';
+
+type FileInfo = Readonly<{
+	file: string;
+	files: Files;
+}>;
+
+type ContextWithFileInfo = Readonly<{
+	context: tsc.TransformationContext;
+	fileInfo: FileInfo &
+		Readonly<{
+			addFile: () => void;
+		}>;
+}>;
 
 const formProperFilePath = (
 	props: Readonly<{
@@ -143,30 +156,19 @@ const addJSExtension = (
 	}
 };
 
-const moduleSpecifier = (
-	props: Readonly<{
-		file: string;
-		files: Files;
-		node: tsc.ImportDeclaration | tsc.ExportDeclaration;
-	}>
+const generateModuleSpecifier = (
+	props: FileInfo &
+		Readonly<{
+			moduleSpecifier: string;
+		}>
 ) => {
-	if (!props.node.moduleSpecifier) {
-		return undefined;
-	}
-
-	const moduleSpecifier = asString({
-		// @ts-expect-error: text is string
-		value: props.node.moduleSpecifier.text,
-		error: new Error('Module specifier of node should have text'),
-	});
-
-	if (!moduleSpecifier.startsWith('.')) {
+	if (!props.moduleSpecifier.startsWith('.')) {
 		return undefined;
 	}
 
 	const result = addJSExtension({
-		importPath: moduleSpecifier,
-		filePath: path.posix.join(props.file, '..', moduleSpecifier),
+		importPath: props.moduleSpecifier,
+		filePath: path.posix.join(props.file, '..', props.moduleSpecifier),
 	});
 
 	switch (result.procedure) {
@@ -184,78 +186,181 @@ const moduleSpecifier = (
 	return undefined;
 };
 
-const updateImportExport = (
-	context: tsc.TransformationContext,
-	fileInfo: Readonly<
-		Omit<Parameters<typeof moduleSpecifier>[0], 'node'> & {
-			updatedFiles: Set<string>;
-		}
-	>
+const nodeIsStringLiteral = (node: tsc.Node) => {
+	return (
+		tsc.isStringLiteral(node) || tsc.isNoSubstitutionTemplateLiteral(node)
+	);
+};
+
+const dynamicJsImport = (
+	props: ContextWithFileInfo &
+		Readonly<{
+			node: tsc.CallExpression;
+		}>
 ) => {
-	return (parent: tsc.Node) => {
+	const { node } = props;
+
+	if (node.expression.kind === tsc.SyntaxKind.ImportKeyword) {
+		const argument = guard({
+			value: node.arguments[0],
+			error: new Error(`Dynamic import must have a path`),
+		});
+
+		if (nodeIsStringLiteral(argument)) {
+			const text = generateModuleSpecifier({
+				...props.fileInfo,
+				moduleSpecifier: argument.text,
+			});
+
+			if (!text) {
+				return node;
+			}
+
+			props.fileInfo.addFile();
+
+			return props.context.factory.updateCallExpression(
+				node,
+				node.expression,
+				node.typeArguments,
+				[props.context.factory.createStringLiteral(text)]
+			);
+		}
+	}
+
+	return node;
+};
+
+const dynamicDtsImport = (
+	props: ContextWithFileInfo &
+		Readonly<{
+			node: tsc.ImportTypeNode;
+		}>
+) => {
+	const { node } = props;
+	const { argument } = node;
+
+	if (tsc.isLiteralTypeNode(argument)) {
+		const { literal } = argument;
+
+		if (nodeIsStringLiteral(literal)) {
+			const text = generateModuleSpecifier({
+				...props.fileInfo,
+				moduleSpecifier: literal.text,
+			});
+
+			if (!text) {
+				return node;
+			}
+
+			props.fileInfo.addFile();
+
+			return props.context.factory.updateImportTypeNode(
+				node,
+				props.context.factory.updateLiteralTypeNode(
+					argument,
+					props.context.factory.createStringLiteral(text)
+				),
+				node.attributes,
+				node.qualifier,
+				undefined,
+				node.isTypeOf
+			);
+		}
+	}
+
+	return node;
+};
+
+const staticImportExport = (
+	props: ContextWithFileInfo &
+		Readonly<{
+			node: tsc.ImportDeclaration | tsc.ExportDeclaration;
+		}>
+) => {
+	const { node } = props;
+	const { moduleSpecifier } = node;
+
+	if (!moduleSpecifier || !tsc.isStringLiteral(moduleSpecifier)) {
+		return node;
+	}
+
+	const text = generateModuleSpecifier({
+		...props.fileInfo,
+		moduleSpecifier: moduleSpecifier.text,
+	});
+
+	if (!text) {
+		return node;
+	}
+
+	props.fileInfo.addFile();
+
+	const newModuleSpecifier = {
+		...moduleSpecifier,
+		text,
+	};
+
+	if (tsc.isImportDeclaration(node)) {
+		return props.context.factory.updateImportDeclaration(
+			node,
+			node.modifiers,
+			node.importClause,
+			newModuleSpecifier,
+			node.attributes
+		);
+	}
+
+	return props.context.factory.updateExportDeclaration(
+		node,
+		node.modifiers,
+		node.isTypeOnly,
+		node.exportClause,
+		newModuleSpecifier,
+		node.attributes
+	);
+};
+
+const updateImportExport = (props: ContextWithFileInfo) => {
+	return (parent: tsc.Node): tsc.Node => {
 		const node = tsc.visitEachChild(
 			parent,
-			updateImportExport(context, fileInfo),
-			context
+			updateImportExport(props),
+			props.context
 		);
 
-		if (tsc.isImportDeclaration(node)) {
-			const text = moduleSpecifier({
-				...fileInfo,
+		if (tsc.isImportDeclaration(node) || tsc.isExportDeclaration(node)) {
+			return staticImportExport({
+				...props,
 				node,
 			});
-
-			if (!text) {
-				return node;
-			}
-
-			fileInfo.updatedFiles.add(fileInfo.file);
-
-			return context.factory.updateImportDeclaration(
-				node,
-				undefined,
-				node.importClause,
-				{
-					...node.moduleSpecifier,
-					// @ts-expect-error: text is string
-					text,
-				},
-				undefined
-			);
-		} else if (tsc.isExportDeclaration(node)) {
-			const text = moduleSpecifier({
-				...fileInfo,
+		} else if (tsc.isCallExpression(node)) {
+			return dynamicJsImport({
+				...props,
 				node,
 			});
-
-			if (!text) {
-				return node;
-			}
-
-			fileInfo.updatedFiles.add(fileInfo.file);
-
-			return context.factory.updateExportDeclaration(
+		} else if (tsc.isImportTypeNode(node)) {
+			return dynamicDtsImport({
+				...props,
 				node,
-				undefined,
-				node.isTypeOnly,
-				node.exportClause,
-				{
-					...node.moduleSpecifier,
-					// @ts-expect-error: text is string
-					text,
-				},
-				undefined
-			);
+			});
 		}
 
 		return node;
 	};
 };
 
-const traverse = (props: Parameters<typeof updateImportExport>[1]) => {
+const traverse = (
+	props: Omit<Parameters<typeof updateImportExport>[0], 'context'>
+) => {
 	return (context: tsc.TransformationContext) => {
 		return (rootNode: tsc.Node) => {
-			return tsc.visitNode(rootNode, updateImportExport(context, props));
+			return tsc.visitNode(
+				rootNode,
+				updateImportExport({
+					...props,
+					context,
+				})
+			);
 		};
 	};
 };
@@ -269,16 +374,21 @@ const traverseAndUpdateFile = (files: Files) => {
 		const { fileName: file } = source.parsed;
 
 		const transformer = traverse({
-			files,
-			file,
-			updatedFiles,
+			fileInfo: {
+				files,
+				file,
+				addFile: () => {
+					updatedFiles.add(file);
+				},
+			},
 		});
 
 		const code = printer.printNode(
 			tsc.EmitHint.Unspecified,
 			guard({
-				value: tsc.transform(source.parsed, [transformer])
-					.transformed[0],
+				value: tsc
+					.transform(source.parsed, [transformer])
+					.transformed.at(0),
 				error: new Error('Transformer should have a transformed value'),
 			}),
 			tsc.createSourceFile('', '', tsc.ScriptTarget.Latest)
