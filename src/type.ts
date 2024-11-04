@@ -13,14 +13,4 @@ const guard = <T>(
 	throw props.error;
 };
 
-const asString = (props: Parameters<typeof guard>[0]) => {
-	const s = props.value;
-
-	if (typeof s === 'string') {
-		return s;
-	}
-
-	throw props.error;
-};
-
-export { guard, asString };
+export { guard };
