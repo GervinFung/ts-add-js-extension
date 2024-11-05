@@ -1,4 +1,4 @@
-import type { SourceFile, Files } from './read-write';
+import type { Metainfo, Files } from './read-write';
 
 import fs from 'fs';
 import path from 'path';
@@ -365,46 +365,44 @@ const traverse = (
 	};
 };
 
-const traverseAndUpdateFile = (files: Files) => {
+const traverseAndUpdateFile = (metainfo: Metainfo) => {
 	const printer = tsc.createPrinter();
 
 	const updatedFiles = new Set<string>();
 
-	return (source: SourceFile) => {
-		const { fileName: file } = source.parsed;
+	const { fileName: file } = metainfo.sourceFile;
 
-		const transformer = traverse({
-			fileInfo: {
-				files,
-				file,
-				addFile: () => {
-					updatedFiles.add(file);
-				},
+	const transformer = traverse({
+		fileInfo: {
+			files: metainfo.files,
+			file,
+			addFile: () => {
+				updatedFiles.add(file);
 			},
-		});
+		},
+	});
 
-		const code = printer.printNode(
-			tsc.EmitHint.Unspecified,
-			guard({
-				value: tsc
-					.transform(source.parsed, [transformer])
-					.transformed.at(0),
-				error: new Error('Transformer should have a transformed value'),
-			}),
-			tsc.createSourceFile('', '', tsc.ScriptTarget.Latest)
-		);
+	const code = printer.printNode(
+		tsc.EmitHint.Unspecified,
+		guard({
+			value: tsc
+				.transform(metainfo.sourceFile, [transformer])
+				.transformed.at(0),
+			error: new Error('Transformer should have a transformed value'),
+		}),
+		tsc.createSourceFile('', '', tsc.ScriptTarget.Latest)
+	);
 
-		if (!updatedFiles.has(file)) {
-			return [];
-		}
+	if (!updatedFiles.has(file)) {
+		return [];
+	}
 
-		return [
-			{
-				file,
-				code,
-			},
-		];
-	};
+	return [
+		{
+			file,
+			code,
+		},
+	];
 };
 
 export default traverseAndUpdateFile;

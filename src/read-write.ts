@@ -9,7 +9,7 @@ import { matchEither, separator } from './const';
 import Log from './log';
 import traverseAndUpdateFile from './traverse-and-update';
 
-type SourceFile = Awaited<ReturnType<typeof getAllJSAndDTSCodes>[0]>;
+type Metainfo = Awaited<ReturnType<typeof getAllJSAndDTSMetainfo>[0]>;
 
 type Files = ReadonlyArray<string>;
 
@@ -43,13 +43,18 @@ const readCode = (file: string) => {
 	});
 };
 
-const getAllJSAndDTSCodes = (files: Files) => {
+const getAllJSAndDTSMetainfo = (files: Files) => {
 	return files.map(async (file) => {
 		const code = await readCode(file);
+
 		return {
-			file,
+			files,
 			code,
-			parsed: tsc.createSourceFile(file, code, tsc.ScriptTarget.ESNext),
+			sourceFile: tsc.createSourceFile(
+				file,
+				code,
+				tsc.ScriptTarget.ESNext
+			),
 		};
 	});
 };
@@ -63,7 +68,7 @@ const findMany = async (
 	// user may import files from `common` into `src`
 	const files = props.include.concat(props.dir).flatMap(getAllJSAndDTSFiles);
 
-	return await Promise.all(getAllJSAndDTSCodes(files));
+	return await Promise.all(getAllJSAndDTSMetainfo(files));
 };
 
 const writeMany = async (
@@ -72,11 +77,7 @@ const writeMany = async (
 		foundMany: Awaited<ReturnType<typeof findMany>>;
 	}>
 ) => {
-	const files = props.foundMany.map((data) => {
-		return data.file;
-	});
-
-	const transformed = props.foundMany.flatMap(traverseAndUpdateFile(files));
+	const transformed = props.foundMany.flatMap(traverseAndUpdateFile);
 
 	const repeat = transformed.reduce((longestFileName, { file }) => {
 		return Math.max(longestFileName, file.length);
@@ -133,5 +134,5 @@ const writeMany = async (
 	}
 };
 
-export type { SourceFile, Files };
+export type { Metainfo, Files };
 export { findMany, writeMany };
