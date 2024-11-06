@@ -1,3 +1,7 @@
+# 1.6.5 (06 Nov 2024)
+
+-   (Fix) handle dynamic import with static path
+
 # 1.6.4 (31 Mar 2024)
 
 -   (Fix) join `data` from `createReadStream` with array rather than assign to string

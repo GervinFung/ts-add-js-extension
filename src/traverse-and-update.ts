@@ -1,12 +1,25 @@
-import type { SourceFile, Files } from './read-write';
+import type { Metainfo, Files } from './read-write';
 
 import fs from 'fs';
 import path from 'path';
 
-import ts from 'typescript';
+import tsc from 'typescript';
 
 import { extensions, matchJs, separator } from './const';
-import { asString } from './type';
+import { guard } from './type';
+
+type FileInfo = Readonly<{
+	file: string;
+	files: Files;
+}>;
+
+type ContextWithFileInfo = Readonly<{
+	context: tsc.TransformationContext;
+	fileInfo: FileInfo &
+		Readonly<{
+			addFile: () => void;
+		}>;
+}>;
 
 const formProperFilePath = (
 	props: Readonly<{
@@ -56,12 +69,8 @@ const checkTypeDefinitionFileExistByAppend = (
 	return false;
 };
 
-const isDirectory = (filePath: string) => {
-	try {
-		return fs.lstatSync(filePath).isDirectory();
-	} catch (ignoreError) {
-		return false;
-	}
+const isDirectory = (path: string) => {
+	return fs.existsSync(path) && fs.lstatSync(path).isDirectory();
 };
 
 const addJSExtensionConditionally = (
@@ -80,44 +89,41 @@ const addJSExtensionConditionally = (
 		procedure: 'skip',
 	} as const;
 
-	switch (isDirectory(props.filePath)) {
-		case true: {
-			const result = check({
-				filePath: path.posix.join(props.filePath, 'index'),
-			});
+	if (isDirectory(props.filePath)) {
+		const result = check({
+			filePath: path.posix.join(props.filePath, 'index'),
+		});
 
-			if (!result) {
-				return skip;
-			}
-
-			const file = `index${result.extension}`;
-
-			return {
-				procedure: 'proceed',
-				absolutePath: result.filePath,
-				importPath: formProperFilePath({
-					filePath: `${props.importPath}${separator}${file}`,
-				}),
-			} as const;
+		if (!result) {
+			return skip;
 		}
-		case false: {
-			const result = check({
-				filePath: props.filePath,
-			});
 
-			if (!result) {
-				return skip;
-			}
+		const file = `index${result.extension}`;
 
-			return {
-				procedure: 'proceed',
-				absolutePath: result.filePath,
-				importPath: formProperFilePath({
-					filePath: `${props.importPath}${result.extension}`,
-				}),
-			} as const;
-		}
+		return {
+			procedure: 'proceed',
+			absolutePath: result.filePath,
+			importPath: formProperFilePath({
+				filePath: `${props.importPath}${separator}${file}`,
+			}),
+		} as const;
 	}
+
+	const result = check({
+		filePath: props.filePath,
+	});
+
+	if (!result) {
+		return skip;
+	}
+
+	return {
+		procedure: 'proceed',
+		absolutePath: result.filePath,
+		importPath: formProperFilePath({
+			filePath: `${props.importPath}${result.extension}`,
+		}),
+	} as const;
 };
 
 const addJSExtension = (
@@ -125,11 +131,11 @@ const addJSExtension = (
 		filePath: string;
 		importPath: string;
 	}>
-): ReturnType<typeof addJSExtensionConditionally> => {
+) => {
 	if (matchJs(props.filePath)) {
 		return {
 			procedure: 'skip',
-		};
+		} as const;
 	}
 
 	const result = addJSExtensionConditionally({
@@ -150,109 +156,253 @@ const addJSExtension = (
 	}
 };
 
-const traverseAndUpdateFileWithJSExtension = (files: Files) => {
-	return ({ parsed, code }: SourceFile) => {
-		const delimiter = '';
-		const characters = code.split(delimiter);
+const generateModuleSpecifier = (
+	props: FileInfo &
+		Readonly<{
+			moduleSpecifier: string;
+		}>
+) => {
+	if (!props.moduleSpecifier.startsWith('.')) {
+		return undefined;
+	}
 
-		const file = parsed.fileName;
+	const result = addJSExtension({
+		importPath: props.moduleSpecifier,
+		filePath: path.posix.join(props.file, '..', props.moduleSpecifier),
+	});
 
-		const replaceNodes = parsed.statements.flatMap((statement) => {
-			switch (statement.kind) {
-				case ts.SyntaxKind.ImportDeclaration:
-				case ts.SyntaxKind.ExportDeclaration: {
-					const importExportDeclaration = statement as
-						| ts.ExportDeclaration
-						| ts.ImportDeclaration;
-
-					if (!importExportDeclaration.moduleSpecifier) {
-						return [];
-					}
-
-					const moduleSpecifier = asString({
-						// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-						// @ts-ignore
-						value: importExportDeclaration.moduleSpecifier.text,
-						error: new Error(
-							'Module specifier of node should have text'
-						),
-					});
-
-					const fileName = formProperFilePath({
-						filePath: !moduleSpecifier.endsWith(separator)
-							? moduleSpecifier
-							: moduleSpecifier.slice(0, -1),
-					})
-						.split(separator)
-						.at(-1);
-
-					if (!fileName) {
-						throw new Error(
-							`Impossible for file name to be non-existent for ${moduleSpecifier}`
-						);
-					}
-
-					if (moduleSpecifier.startsWith('.')) {
-						const result = addJSExtension({
-							importPath: moduleSpecifier,
-							filePath: path.posix.join(
-								file,
-								'..',
-								moduleSpecifier
-							),
-						});
-
-						switch (result.procedure) {
-							case 'proceed': {
-								// if file name not included in list of js file read
-								if (
-									files.find((file) => {
-										return file.endsWith(
-											result.absolutePath
-										);
-									})
-								) {
-									const before = characters
-										.filter((_, index) => {
-											return (
-												index >
-													importExportDeclaration.pos &&
-												index <
-													importExportDeclaration.end
-											);
-										})
-										.join(delimiter);
-
-									return [
-										{
-											before,
-											after: before.replace(
-												moduleSpecifier,
-												result.importPath
-											),
-										},
-									];
-								}
-							}
-						}
-					}
-				}
+	switch (result.procedure) {
+		case 'proceed': {
+			if (
+				props.files.find((file) => {
+					return file.endsWith(result.absolutePath);
+				})
+			) {
+				return result.importPath;
 			}
+		}
+	}
 
-			return [];
+	return undefined;
+};
+
+const nodeIsStringLiteral = (node: tsc.Node) => {
+	return (
+		tsc.isStringLiteral(node) || tsc.isNoSubstitutionTemplateLiteral(node)
+	);
+};
+
+const dynamicJsImport = (
+	props: ContextWithFileInfo &
+		Readonly<{
+			node: tsc.CallExpression;
+		}>
+) => {
+	const { node } = props;
+
+	if (node.expression.kind === tsc.SyntaxKind.ImportKeyword) {
+		const argument = guard({
+			value: node.arguments[0],
+			error: new Error(`Dynamic import must have a path`),
 		});
 
-		return !replaceNodes.length
-			? []
-			: [
-					{
-						file,
-						code: replaceNodes.reduce((code, node) => {
-							return code.replace(node.before, node.after);
-						}, code),
-					},
-				];
+		if (nodeIsStringLiteral(argument)) {
+			const text = generateModuleSpecifier({
+				...props.fileInfo,
+				moduleSpecifier: argument.text,
+			});
+
+			if (!text) {
+				return node;
+			}
+
+			props.fileInfo.addFile();
+
+			return props.context.factory.updateCallExpression(
+				node,
+				node.expression,
+				node.typeArguments,
+				[props.context.factory.createStringLiteral(text)]
+			);
+		}
+	}
+
+	return node;
+};
+
+const dynamicDtsImport = (
+	props: ContextWithFileInfo &
+		Readonly<{
+			node: tsc.ImportTypeNode;
+		}>
+) => {
+	const { node } = props;
+	const { argument } = node;
+
+	if (tsc.isLiteralTypeNode(argument)) {
+		const { literal } = argument;
+
+		if (nodeIsStringLiteral(literal)) {
+			const text = generateModuleSpecifier({
+				...props.fileInfo,
+				moduleSpecifier: literal.text,
+			});
+
+			if (!text) {
+				return node;
+			}
+
+			props.fileInfo.addFile();
+
+			return props.context.factory.updateImportTypeNode(
+				node,
+				props.context.factory.updateLiteralTypeNode(
+					argument,
+					props.context.factory.createStringLiteral(text)
+				),
+				node.attributes,
+				node.qualifier,
+				undefined,
+				node.isTypeOf
+			);
+		}
+	}
+
+	return node;
+};
+
+const staticImportExport = (
+	props: ContextWithFileInfo &
+		Readonly<{
+			node: tsc.ImportDeclaration | tsc.ExportDeclaration;
+		}>
+) => {
+	const { node } = props;
+	const { moduleSpecifier } = node;
+
+	if (!moduleSpecifier || !tsc.isStringLiteral(moduleSpecifier)) {
+		return node;
+	}
+
+	const text = generateModuleSpecifier({
+		...props.fileInfo,
+		moduleSpecifier: moduleSpecifier.text,
+	});
+
+	if (!text) {
+		return node;
+	}
+
+	props.fileInfo.addFile();
+
+	const newModuleSpecifier = {
+		...moduleSpecifier,
+		text,
+	};
+
+	if (tsc.isImportDeclaration(node)) {
+		return props.context.factory.updateImportDeclaration(
+			node,
+			node.modifiers,
+			node.importClause,
+			newModuleSpecifier,
+			node.attributes
+		);
+	}
+
+	return props.context.factory.updateExportDeclaration(
+		node,
+		node.modifiers,
+		node.isTypeOnly,
+		node.exportClause,
+		newModuleSpecifier,
+		node.attributes
+	);
+};
+
+const updateImportExport = (props: ContextWithFileInfo) => {
+	return (parent: tsc.Node): tsc.Node => {
+		const node = tsc.visitEachChild(
+			parent,
+			updateImportExport(props),
+			props.context
+		);
+
+		if (tsc.isImportDeclaration(node) || tsc.isExportDeclaration(node)) {
+			return staticImportExport({
+				...props,
+				node,
+			});
+		} else if (tsc.isCallExpression(node)) {
+			return dynamicJsImport({
+				...props,
+				node,
+			});
+		} else if (tsc.isImportTypeNode(node)) {
+			return dynamicDtsImport({
+				...props,
+				node,
+			});
+		}
+
+		return node;
 	};
 };
 
-export default traverseAndUpdateFileWithJSExtension;
+const traverse = (
+	props: Omit<Parameters<typeof updateImportExport>[0], 'context'>
+) => {
+	return (context: tsc.TransformationContext) => {
+		return (rootNode: tsc.Node) => {
+			return tsc.visitNode(
+				rootNode,
+				updateImportExport({
+					...props,
+					context,
+				})
+			);
+		};
+	};
+};
+
+const traverseAndUpdateFile = (metainfo: Metainfo) => {
+	const printer = tsc.createPrinter();
+
+	const updatedFiles = new Set<string>();
+
+	const { fileName: file } = metainfo.sourceFile;
+
+	const transformer = traverse({
+		fileInfo: {
+			files: metainfo.files,
+			file,
+			addFile: () => {
+				updatedFiles.add(file);
+			},
+		},
+	});
+
+	const code = printer.printNode(
+		tsc.EmitHint.Unspecified,
+		guard({
+			value: tsc
+				.transform(metainfo.sourceFile, [transformer])
+				.transformed.at(0),
+			error: new Error('Transformer should have a transformed value'),
+		}),
+		tsc.createSourceFile('', '', tsc.ScriptTarget.Latest)
+	);
+
+	if (!updatedFiles.has(file)) {
+		return [];
+	}
+
+	return [
+		{
+			file,
+			code,
+		},
+	];
+};
+
+export default traverseAndUpdateFile;

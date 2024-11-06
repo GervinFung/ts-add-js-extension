@@ -21,4 +21,4 @@ const matchEither = (filePath: string) => {
 	return matchJs(filePath) ?? matchDts(filePath);
 };
 
-export { extensions, matchJs, matchDts, matchEither, separator };
+export { extensions, matchJs, matchEither, separator };

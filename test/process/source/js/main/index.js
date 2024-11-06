@@ -4,7 +4,12 @@ import { fs } from 'fs';
 
 import * as util from './util';
 import util from './util';
-import { util } from './util';
+import {
+	util,
+	mapBlogPostStatesToNative,
+	transformBannerImage,
+	useBlogPostStates,
+} from './util';
 
 export * as fs from 'fs';
 export * from 'fs';

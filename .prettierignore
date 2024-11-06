@@ -8,5 +8,6 @@ src/package.ts
 
 # test
 test/process/actual-result
+test/process/expected-result
 
 pnpm-lock.yaml
