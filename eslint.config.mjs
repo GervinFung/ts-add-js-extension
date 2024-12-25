@@ -1,8 +1,6 @@
 import process from 'process';
 
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { includeIgnoreFile } from '@eslint/compat';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import eslint from '@eslint/js';
 import { node } from '@poolofdeath20/eslint-config';
 import tseslint from 'typescript-eslint';
