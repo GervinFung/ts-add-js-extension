@@ -40,19 +40,19 @@
 		"url": "https://github.com/GervinFung/ts-add-js-extension"
 	},
 	"dependencies": {
-		"typescript": "^5.7.2"
+		"typescript": "^5.8.2"
 	},
 	"devDependencies": {
 		"@poolofdeath20/eslint-config": "^0.4.2",
 		"@poolofdeath20/prettier-config-generator": "^0.0.1",
 		"@poolofdeath20/tsconfig": "^0.1.1",
-		"@types/node": "^22.10.2",
-		"eslint": "^9.17.0",
+		"@types/node": "^22.13.14",
+		"eslint": "^9.23.0",
 		"node-package-helper": "github:GervinFung/node-package-helper",
-		"prettier": "^3.4.2",
+		"prettier": "^3.5.3",
 		"shx": "^0.3.4",
-		"vite-node": "^2.1.8",
-		"vitest": "^2.1.8"
+		"vite-node": "^2.1.9",
+		"vitest": "^2.1.9"
 	},
 	"keywords": [
 		"esm",
