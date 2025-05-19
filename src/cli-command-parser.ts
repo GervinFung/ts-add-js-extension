@@ -25,7 +25,11 @@ const commandKeyWords = {
 		type: 'deprecated',
 		isMandatory: false,
 		keyword: 'showchanges',
-		reason: 'The function showchanges is deprecated in favor of `showprorgess`',
+		reason: 'The function `showchanges` is deprecated in favor of `showprogress` and will be removed in version 2.0',
+	},
+	showProgress: {
+		isMandatory: false,
+		keyword: 'showprogress',
 	},
 	assignment: {
 		assign: '=',
@@ -105,34 +109,42 @@ class TokenParser {
 		} as const;
 	};
 
-	readonly parseShowChanges = () => {
-		const { keyword } = commandKeyWords.showChanges;
+	readonly parseBoolean = <Keyword extends string>(keyword: Keyword) => {
+		return () => {
+			const { key, value } = this.token;
 
-		const { key, value } = this.token;
+			if (key !== keyword) {
+				return {
+					exists: false,
+				} as const;
+			}
 
-		if (key !== commandKeyWords.showChanges.keyword) {
-			return {
-				exists: false,
-			} as const;
-		}
+			if (value === 'true' || value === 'false') {
+				return {
+					type: keyword,
+					exists: true,
+					value: value === 'true',
+				} as const;
+			}
 
-		if (value === 'true' || value === 'false') {
-			return {
-				type: keyword,
-				exists: true,
-				value: JSON.parse(value) as boolean,
-			} as const;
-		}
-
-		throw new Error(
-			`${key}=${value} is invalid, it can only receive boolean value`
-		);
+			throw new Error(
+				`${key}=${value} is invalid, it can only receive boolean value`
+			);
+		};
 	};
+
+	readonly parseShowProgress = this.parseBoolean(
+		commandKeyWords.showProgress.keyword
+	);
+
+	readonly parseShowChanges = this.parseBoolean(
+		commandKeyWords.showChanges.keyword
+	);
 
 	readonly processNonRecognisableToken = () => {
 		return {
 			type: 'invalid',
-			reason: 'then token cannot be recognized',
+			reason: `'${this.token.key}'='${this.token.value}' token cannot be recognized`,
 			token: this.token,
 		} as const;
 	};
@@ -284,7 +296,17 @@ class ParseArgs {
 			if (showChanges.exists) {
 				return showChanges;
 			}
+			const showProgress = parser.parseShowProgress();
+			if (showProgress.exists) {
+				return showProgress;
+			}
 			return parser.processNonRecognisableToken();
+		});
+
+		processedToken.forEach((node) => {
+			if (node.type === 'showchanges') {
+				console.warn(commandKeyWords.showChanges.reason);
+			}
 		});
 
 		processedToken
@@ -311,11 +333,23 @@ class ParseArgs {
 				),
 			}),
 			// optional
+			/**
+			 * @deprecated
+			 * Will be removed in version 2.0
+			 * */
 			include: nodes.find((node) => {
 				return node.type === 'include';
 			})?.value,
+			/**
+			 * @deprecated
+			 * Will be removed in version 2.0
+			 * `showChanges` is deprecated in favor of `showProgress`
+			 * */
 			showChanges: nodes.find((node) => {
 				return node.type === 'showchanges';
+			})?.value,
+			showProgress: nodes.find((node) => {
+				return node.type === 'showprogress';
 			})?.value,
 		} as const;
 	};
