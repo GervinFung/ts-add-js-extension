@@ -333,10 +333,6 @@ class ParseArgs {
 				),
 			}),
 			// optional
-			/**
-			 * @deprecated
-			 * Will be removed in version 2.0
-			 * */
 			include: nodes.find((node) => {
 				return node.type === 'include';
 			})?.value,
