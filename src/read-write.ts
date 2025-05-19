@@ -73,7 +73,7 @@ const findMany = async (
 
 const writeMany = async (
 	props: Readonly<{
-		showChanges: boolean;
+		showProgress: boolean;
 		foundMany: Awaited<ReturnType<typeof findMany>>;
 	}>
 ) => {
@@ -83,7 +83,7 @@ const writeMany = async (
 		return Math.max(longestFileName, file.length);
 	}, 0);
 
-	const log = !(transformed.length && props.showChanges)
+	const log = !(transformed.length && props.showProgress)
 		? undefined
 		: Log.fromNumberOfFiles(transformed.length);
 
