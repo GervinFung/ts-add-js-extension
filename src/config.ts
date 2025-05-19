@@ -28,6 +28,7 @@ const normaliseConfig = (
 		dir: config.dir,
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		showProgress: config.showProgress ?? config.showChanges ?? true,
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		include: config.include ?? [],
 	};
 };

@@ -18,8 +18,10 @@ const commandKeyWords = {
 		keyword: 'dir',
 	},
 	include: {
+		type: 'deprecated',
 		isMandatory: false,
 		keyword: 'include',
+		reason: 'The function `include` is deprecated due to legacy reasons and will be removed in version 2.0',
 	},
 	showChanges: {
 		type: 'deprecated',
@@ -306,6 +308,8 @@ class ParseArgs {
 		processedToken.forEach((node) => {
 			if (node.type === 'showchanges') {
 				console.warn(commandKeyWords.showChanges.reason);
+			} else if (node.type === 'include') {
+				console.warn(commandKeyWords.include.reason);
 			}
 		});
 
@@ -333,6 +337,10 @@ class ParseArgs {
 				),
 			}),
 			// optional
+			/**
+			 * @deprecated
+			 * Will be removed in version 2.0
+			 * */
 			include: nodes.find((node) => {
 				return node.type === 'include';
 			})?.value,
