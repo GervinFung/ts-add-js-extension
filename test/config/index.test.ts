@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 
 import { parseConfig } from '../../src';
+import { normaliseConfig } from '../../src/config';
 
 describe('Config parsing', () => {
 	it('should throw error when parsing config the old way', () => {
@@ -20,5 +21,47 @@ describe('Config parsing', () => {
 				dir: 'dir',
 			});
 		}).toThrowError();
+	});
+});
+
+describe('Normalising config', () => {
+	it('should normalise both `showChanges` and `showProgress` to `showProgress` only', () => {
+		expect(
+			normaliseConfig({
+				dir: 'dir',
+				showChanges: true,
+				showProgress: false,
+			})
+		).toStrictEqual({
+			dir: 'dir',
+			showProgress: false,
+			include: [],
+		});
+	});
+
+	it('should normalise `showChanges` to `showProgress`', () => {
+		expect(
+			normaliseConfig({
+				dir: 'dir',
+				showChanges: true,
+			})
+		).toStrictEqual({
+			dir: 'dir',
+			showProgress: true,
+			include: [],
+		});
+	});
+
+	it('should normalise `showProgress` to `showProgress`', () => {
+		expect(
+			normaliseConfig({
+				dir: 'dir',
+				showProgress: true,
+			})
+		).toStrictEqual({
+			dir: 'dir',
+			showProgress: true,
+			include: [],
+		});
 	});
 });

@@ -22,6 +22,7 @@ describe('Operation arguments parsing', () => {
 				dir: 'build/mjs',
 				include: ['build/dts', 'build/js', 'test'],
 				showChanges: true,
+				showProgress: undefined,
 			});
 		}
 	);
@@ -42,6 +43,7 @@ describe('Operation arguments parsing', () => {
 				dir: 'build/mjs',
 				include: undefined,
 				showChanges: undefined,
+				showProgress: undefined,
 			});
 		}
 	);
@@ -58,5 +60,25 @@ describe('Operation arguments parsing', () => {
 				].join(' ')
 			).asOperation();
 		}).toThrowError();
+	});
+
+	it('should parse both `showchanges` and `showprogress`', () => {
+		expect(
+			ParseArgs.create(
+				[
+					'node',
+					'ts-add-js-extension',
+					'add',
+					'--dir=build',
+					'--showchanges=true',
+					'--showprogress=true',
+				].join(' ')
+			).asOperation()
+		).toStrictEqual({
+			dir: 'build',
+			include: undefined,
+			showChanges: true,
+			showProgress: true,
+		});
 	});
 });
