@@ -26,6 +26,7 @@ const normaliseConfig = (
 ): Omit<NormalisedConfig, 'showChanges'> => {
 	return {
 		dir: config.dir,
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		showProgress: config.showProgress ?? config.showChanges ?? true,
 		include: config.include ?? [],
 	};
