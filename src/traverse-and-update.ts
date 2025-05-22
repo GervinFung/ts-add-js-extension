@@ -262,7 +262,7 @@ const dynamicDtsImport = (
 				),
 				node.attributes,
 				node.qualifier,
-				undefined,
+				node.typeArguments,
 				node.isTypeOf
 			);
 		}
