@@ -13,12 +13,14 @@ type FileInfo = Readonly<{
 	files: Files;
 }>;
 
-type ContextWithFileInfo = Readonly<{
-	context: tsc.TransformationContext;
-	fileInfo: FileInfo &
-		Readonly<{
-			addFile: () => void;
-		}>;
+type FileInfoWithUpdateFile = FileInfo &
+	Readonly<{
+		updateFile: () => void;
+	}>;
+
+type FactoryWithFileInfo = Readonly<{
+	factory: tsc.NodeFactory;
+	fileInfo: FileInfoWithUpdateFile;
 }>;
 
 const formProperFilePath = (
@@ -193,7 +195,7 @@ const nodeIsStringLiteral = (node: tsc.Node) => {
 };
 
 const dynamicJsImport = (
-	props: ContextWithFileInfo &
+	props: FactoryWithFileInfo &
 		Readonly<{
 			node: tsc.CallExpression;
 		}>
@@ -216,13 +218,13 @@ const dynamicJsImport = (
 				return node;
 			}
 
-			props.fileInfo.addFile();
+			props.fileInfo.updateFile();
 
-			return props.context.factory.updateCallExpression(
+			return props.factory.updateCallExpression(
 				node,
 				node.expression,
 				node.typeArguments,
-				[props.context.factory.createStringLiteral(text)]
+				[props.factory.createStringLiteral(text)]
 			);
 		}
 	}
@@ -231,7 +233,7 @@ const dynamicJsImport = (
 };
 
 const dynamicDtsImport = (
-	props: ContextWithFileInfo &
+	props: FactoryWithFileInfo &
 		Readonly<{
 			node: tsc.ImportTypeNode;
 		}>
@@ -252,13 +254,13 @@ const dynamicDtsImport = (
 				return node;
 			}
 
-			props.fileInfo.addFile();
+			props.fileInfo.updateFile();
 
-			return props.context.factory.updateImportTypeNode(
+			return props.factory.updateImportTypeNode(
 				node,
-				props.context.factory.updateLiteralTypeNode(
+				props.factory.updateLiteralTypeNode(
 					argument,
-					props.context.factory.createStringLiteral(text)
+					props.factory.createStringLiteral(text)
 				),
 				node.attributes,
 				node.qualifier,
@@ -272,7 +274,7 @@ const dynamicDtsImport = (
 };
 
 const staticImportExport = (
-	props: ContextWithFileInfo &
+	props: FactoryWithFileInfo &
 		Readonly<{
 			node: tsc.ImportDeclaration | tsc.ExportDeclaration;
 		}>
@@ -293,34 +295,34 @@ const staticImportExport = (
 		return node;
 	}
 
-	props.fileInfo.addFile();
-
-	const newModuleSpecifier = {
-		...moduleSpecifier,
-		text,
-	};
+	props.fileInfo.updateFile();
 
 	if (tsc.isImportDeclaration(node)) {
-		return props.context.factory.updateImportDeclaration(
+		return props.factory.updateImportDeclaration(
 			node,
 			node.modifiers,
 			node.importClause,
-			newModuleSpecifier,
+			props.factory.createStringLiteral(text),
 			node.attributes
 		);
 	}
 
-	return props.context.factory.updateExportDeclaration(
+	return props.factory.updateExportDeclaration(
 		node,
 		node.modifiers,
 		node.isTypeOnly,
 		node.exportClause,
-		newModuleSpecifier,
+		props.factory.createStringLiteral(text),
 		node.attributes
 	);
 };
 
-const updateImportExport = (props: ContextWithFileInfo) => {
+const updateImportExport = (
+	props: Readonly<{
+		context: tsc.TransformationContext;
+		fileInfo: FileInfoWithUpdateFile;
+	}>
+) => {
 	return (parent: tsc.Node): tsc.Node => {
 		const node = tsc.visitEachChild(
 			parent,
@@ -328,19 +330,24 @@ const updateImportExport = (props: ContextWithFileInfo) => {
 			props.context
 		);
 
+		const parameters = {
+			fileInfo: props.fileInfo,
+			factory: props.context.factory,
+		};
+
 		if (tsc.isImportDeclaration(node) || tsc.isExportDeclaration(node)) {
 			return staticImportExport({
-				...props,
+				...parameters,
 				node,
 			});
 		} else if (tsc.isCallExpression(node)) {
 			return dynamicJsImport({
-				...props,
+				...parameters,
 				node,
 			});
 		} else if (tsc.isImportTypeNode(node)) {
 			return dynamicDtsImport({
-				...props,
+				...parameters,
 				node,
 			});
 		}
@@ -368,7 +375,7 @@ const traverse = (
 const traverseAndUpdateFile = (metainfo: Metainfo) => {
 	const printer = tsc.createPrinter();
 
-	const updatedFiles = new Set<string>();
+	let fileUpdated = false as boolean;
 
 	const { fileName: file } = metainfo.sourceFile;
 
@@ -376,8 +383,8 @@ const traverseAndUpdateFile = (metainfo: Metainfo) => {
 		fileInfo: {
 			files: metainfo.files,
 			file,
-			addFile: () => {
-				updatedFiles.add(file);
+			updateFile: () => {
+				fileUpdated = true;
 			},
 		},
 	});
@@ -390,10 +397,10 @@ const traverseAndUpdateFile = (metainfo: Metainfo) => {
 				.transformed.at(0),
 			error: new Error('Transformer should have a transformed value'),
 		}),
-		tsc.createSourceFile('', '', tsc.ScriptTarget.Latest)
+		metainfo.sourceFile
 	);
 
-	if (!updatedFiles.has(file)) {
+	if (!fileUpdated) {
 		return [];
 	}
 

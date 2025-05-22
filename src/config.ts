@@ -17,13 +17,21 @@ const parseConfig = (_: Readonly<Record<string, unknown>>) => {
 	);
 };
 
-const valuelizeConfig = (config: PartialConfig) => {
+type NormalisedConfig<T = PartialConfig> = Readonly<{
+	[K in keyof T]-?: NonNullable<T[K]>;
+}>;
+
+const normaliseConfig = (
+	config: PartialConfig
+): Omit<NormalisedConfig, 'showChanges'> => {
 	return {
-		...config,
-		showChanges: config.showChanges ?? true,
+		dir: config.dir,
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		showProgress: config.showProgress ?? config.showChanges ?? true,
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		include: config.include ?? [],
-	} as const;
+	};
 };
 
-export { valuelizeConfig, parseConfig };
+export { normaliseConfig, parseConfig };
 export type { PartialConfig as ParsedConfig };

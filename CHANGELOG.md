@@ -1,3 +1,9 @@
+# 1.6.6 (22 May 2025)
+
+- (Fix) deprecate `showchanges` and replace with `showprogress` argument in both CLI and API
+- (Fix) deprecate `include` argument in both CLI and API
+- (Fix) preserve `typeArguments` when updating `TypeNode`
+
 # 1.6.5 (06 Nov 2024)
 
 - (Fix) handle dynamic import with static path
