@@ -50,28 +50,6 @@ tsAddJsExtension({
 });
 ```
 
-**Note**: _If you need to include multiple root folders, such as "common", "dist", "build", or any other names you prefer, you can specify them accordingly, like the following_
-
-#### Command line:
-
-```json
-{
-	"scripts": {
-		"<command name can be anything>": "ts-add-js-extension --dir=dist --include=common build --showchanges=true"
-	}
-}
-```
-
-#### API:
-
-```js
-tsAddJsExtension({
-	dir: 'dist',
-	showProgress: true,
-	include: ['common', 'build'],
-});
-```
-
 ### Execution Process
 
 Assuming you have a file called `main.ts` in the "dist" directory, the file structure would look like this:
@@ -115,11 +93,12 @@ This ensures that all the JavaScript files in your project have the correct file
 
 # Arguments
 
-| Argument    | Usage                                                                                                        | Required | Status     | Default Value |
-| :---------- | :----------------------------------------------------------------------------------------------------------- | :------- | ---------- | ------------- |
-| dir         | Specifies the folder where JavaScript file extension needs to be added                                       | Yes      | Active     | None          |
-| include     | Specifies the folder of files that are imported or included in the dir folder, excluding the specified dir   | No       | Deprecated | []            |
-| showchanges | Determines whether to display progress feedback in the format of `Num. (File Updated) - (SUCCEED or FAILED)` | No       | Active     | True          |
+| Argument     | Usage                                                                                                        | Required | Status                                  | Default Value |
+| :----------- | :----------------------------------------------------------------------------------------------------------- | :------- | --------------------------------------- | ------------- |
+| dir          | Specifies the folder where JavaScript file extension needs to be added                                       | Yes      | Active                                  | None          |
+| include      | Specifies the folder of files that are imported or included in the dir folder, excluding the specified dir   | No       | Deprecated                              | []            |
+| showchanges  | Determines whether to display progress feedback in the format of `Num. (File Updated) - (SUCCEED or FAILED)` | No       | Deprecated (in favor of `showprogress`) | True          |
+| showprogress | Determines whether to display progress feedback in the format of `Num. (File Updated) - (SUCCEED or FAILED)` | No       | Active                                  | True          |
 
 _Please note that the status column indicates whether an argument is active or deprecated, and the default value column specifies the default value if not provided_
 
