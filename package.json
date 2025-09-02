@@ -46,7 +46,7 @@
 		"@poolofdeath20/eslint-config": "^0.4.2",
 		"@poolofdeath20/prettier-config-generator": "^0.0.1",
 		"@poolofdeath20/tsconfig": "^0.1.2",
-		"@types/node": "^22.18.0",
+		"@types/node": "^24.3.0",
 		"eslint": "^9.34.0",
 		"node-package-helper": "github:GervinFung/node-package-helper",
 		"prettier": "^3.6.2",
